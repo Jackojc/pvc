@@ -40,8 +40,8 @@ int main(int argc, const char* argv[]) {
 
 	br::printlnfmt("a: {}, b: {}", "1", "2");
 
-	// int a = 4;
-	// br::println(BR_DEBUG(a + 1));
+	int a = 4;
+	br::println(BR_DEBUG(a + 1));
 
 	// BR_UNIMPLEMENTED();
 	// BR_UNREACHABLE();

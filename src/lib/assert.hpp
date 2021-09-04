@@ -69,6 +69,7 @@ namespace br {
 		#define BR_UNREACHABLE() do {} while (0)
 		#define BR_ASSERT(cond) do {} while (0)
 		#define BR_STATIC_ASSERT(cond, msg) do {} while (0)
+		#define BR_DEBUG(expr) ( (expr) )
 	#endif
 
 }
