@@ -1,11 +1,7 @@
 #ifndef BR_ASSERT_H
 #define BR_ASSERT_H
 
-#include <cstdio>
-
 #include <lib/def.hpp>
-#include <lib/exit.hpp>
-#include <lib/str.hpp>
 #include <lib/io.hpp>
 
 namespace br {
@@ -19,29 +15,32 @@ namespace br {
 		#endif
 	#endif
 
+
 	#define BR_UNIMPLEMENTED() \
 		do { \
-			br::printlnfmt("[{}:{}] unimplemented!", __FILE__, BR_STR(__LINE__)); \
-			br::exit(1); \
+			br::halt("[{}:{}] unimplemented!", __FILE__, BR_STR(__LINE__)); \
 		} while (0)
 
 	#define BR_TODO(msg) \
 		do { \
-			br::printlnfmt("[{}:{}] todo: {}!", __FILE__, BR_STR(__LINE__), (msg)); \
+			br::errlnfmt("[{}:{}] todo: {}!", __FILE__, BR_STR(__LINE__), (msg)); \
 		} while (0)
 
 	#ifndef BR_DISABLE_ASSERT
+		#define BR_DEBUG_RUN(expr) \
+			do { \
+				( (expr) ); \
+			} while (0)
+
 		#define BR_UNREACHABLE() \
 			do { \
-				br::printlnfmt("[{}:{}] unreachable!", __FILE__, BR_STR(__LINE__)); \
-				br::exit(1); \
+				br::halt("[{}:{}] unreachable!", __FILE__, BR_STR(__LINE__)); \
 			} while (0)
 
 		#define BR_ASSERT(cond) \
 			do { \
 				if (not (cond)) { \
-					br::printlnfmt("[{}:{}] assertion failed: '{}'!", __FILE__, BR_STR(__LINE__), BR_STR(cond)); \
-					br::exit(1); \
+					br::halt("[{}:{}] assertion failed: '{}'!", __FILE__, BR_STR(__LINE__), BR_STR(cond)); \
 				} \
 			} while (0)
 
@@ -66,6 +65,7 @@ namespace br {
 			( br::detail::print_debug_impl(__FILE__, BR_STR(__LINE__), BR_STR(expr), (expr)) )
 
 	#else
+		#define BR_DEBUG_RUN(expr) do {} while (0)
 		#define BR_UNREACHABLE() do {} while (0)
 		#define BR_ASSERT(cond) do {} while (0)
 		#define BR_STATIC_ASSERT(cond, msg) do {} while (0)

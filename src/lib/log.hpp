@@ -1,7 +1,8 @@
 #ifndef BR_LOG_H
 #define BR_LOG_H
 
-#include <lib/log.hpp>
+#include <lib/def.hpp>
+#include <lib/io.hpp>
 
 namespace br {
 
@@ -49,39 +50,31 @@ namespace br {
 	#define BR_LOG_ERROR_STYLE    BR_ANSI_BOLD BR_ANSI_FG_BRIGHT_RED    "[!]" BR_ANSI_RESET
 	#define BR_LOG_SUCCESS_STYLE  BR_ANSI_BOLD BR_ANSI_FG_BRIGHT_YELLOW "[^]" BR_ANSI_RESET
 
-	#define BR_TRACE __FILE__ ":" BR_STR(__LINE__)
+	#define BR_TRACE "[" __FILE__ ":" BR_STR(__LINE__) "] "
 
-	void log_info(const char* const fmt, ...) {
-		// fprintf(stderr, BR_LOG_INFO_STYLE " ");
-		// va_list args;
-		// va_start(args, fmt);
-		// vfprintf(stderr, fmt, args);
-		// va_end(args);
+	enum: u8_t {
+		LOG_LEVEL_INFO,
+		LOG_LEVEL_WARN,
+		LOG_LEVEL_ERROR,
+		LOG_LEVEL_SUCCESS,
+	};
+
+	template <typename... Ts>
+	inline void log(u8_t lvl, Ts... args) {
+		switch (lvl) {
+			case LOG_LEVEL_INFO:    br::err(BR_LOG_INFO_STYLE " ");    break;
+			case LOG_LEVEL_WARN:    br::err(BR_LOG_WARN_STYLE " ");    break;
+			case LOG_LEVEL_ERROR:   br::err(BR_LOG_ERROR_STYLE " ");   break;
+			case LOG_LEVEL_SUCCESS: br::err(BR_LOG_SUCCESS_STYLE " "); break;
+		}
+
+		br::errlnfmt(args...);
 	}
 
-	void log_warn(const char* const fmt, ...) {
-		// fprintf(stderr, BR_LOG_WARN_STYLE " ");
-		// va_list args;
-		// va_start(args, fmt);
-		// vfprintf(stderr, fmt, args);
-		// va_end(args);
-	}
-
-	void log_error(const char* const fmt, ...) {
-		// fprintf(stderr, BR_LOG_ERROR_STYLE " ");
-		// va_list args;
-		// va_start(args, fmt);
-		// vfprintf(stderr, fmt, args);
-		// va_end(args);
-	}
-
-	void log_success(const char* const fmt, ...) {
-		// fprintf(stderr, BR_LOG_SUCCESS_STYLE" ");
-		// va_list args;
-		// va_start(args, fmt);
-		// vfprintf(stderr, fmt, args);
-		// va_end(args);
-	}
+	#define BR_LOG(lvl, ...) \
+		do { \
+			BR_DEBUG_RUN( br::log(lvl, BR_TRACE  __VA_ARGS__) ); \
+		} while (0)
 
 }
 

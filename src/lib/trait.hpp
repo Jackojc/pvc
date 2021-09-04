@@ -17,6 +17,7 @@ namespace br {
 	using false_type = integral_constant<bool, false>;
 
 
+	// https://en.cppreference.com/w/cpp/types/remove_cv
 	// remove_cv
 	template <typename T> struct remove_cv                   { using type = T; };
 	template <typename T> struct remove_cv<const T>          { using type = T; };
@@ -34,6 +35,7 @@ namespace br {
 	template <typename T> using remove_volatile_t = typename remove_volatile<T>::type;
 
 
+	// https://en.cppreference.com/w/cpp/types/is_pointer
 	// is_pointer
 	template <typename T>
 	struct is_pointer_helper:
@@ -51,6 +53,7 @@ namespace br {
 	constexpr bool is_pointer_v = is_pointer<T>::value;
 
 
+	// https://en.cppreference.com/w/cpp/types/is_same
 	// is_same
 	template <typename T, typename U>
 	struct is_same:
@@ -64,7 +67,7 @@ namespace br {
 	constexpr bool is_same_v = is_same<T, U>::value;
 
 
-
+	// https://en.cppreference.com/w/cpp/types/is_null_pointer
 	// is_null_pointer
 	template <typename T>
 	struct is_null_pointer:
@@ -74,9 +77,9 @@ namespace br {
 	constexpr bool is_null_pointer_v = is_null_pointer<T>::value;
 
 
+	// https://en.cppreference.com/w/cpp/types/is_integral
 	// is_integral
 	template <typename> struct is_integral_base: false_type {};
-
 
 	template <> struct is_integral_base<bool>:  true_type {};
 
@@ -92,7 +95,6 @@ namespace br {
 	template <> struct is_integral_base<u64_t>: true_type {};
 	template <> struct is_integral_base<i64_t>: true_type {};
 
-
 	template <typename T> struct is_integral: is_integral_base<remove_cv_t<T>> {};
 
 	template <typename T>
@@ -103,7 +105,6 @@ namespace br {
 	template <typename> struct is_signed_base: false_type {};
 	template <typename> struct is_unsigned_base: false_type {};
 
-
 	template <> struct is_signed_base<i8_t>:  true_type {};
 	template <> struct is_signed_base<i16_t>: true_type {};
 	template <> struct is_signed_base<i32_t>: true_type {};
@@ -113,7 +114,6 @@ namespace br {
 	template <> struct is_unsigned_base<u16_t>: true_type {};
 	template <> struct is_unsigned_base<u32_t>: true_type {};
 	template <> struct is_unsigned_base<u64_t>: true_type {};
-
 
 	template <typename T> struct is_signed: is_signed_base<remove_cv_t<T>> {};
 	template <typename T> struct is_unsigned: is_unsigned_base<remove_cv_t<T>> {};

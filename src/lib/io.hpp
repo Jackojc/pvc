@@ -6,9 +6,10 @@
 #include <cstring>
 
 #include <lib/def.hpp>
+#include <lib/assert_internal.hpp>
 #include <lib/trait.hpp>
-#include <lib/exit.hpp>
 #include <lib/misc.hpp>
+#include <lib/exit.hpp>
 #include <lib/str.hpp>
 
 namespace br {
@@ -167,7 +168,7 @@ namespace br {
 			}
 
 			else {
-				// BR_UNIMPLEMENTED();
+				BR_INTERNAL_UNIMPLEMENTED();
 			}
 		}
 
@@ -184,7 +185,7 @@ namespace br {
 					fmt = iter_next_view(fmt, sv);
 
 					// Ensure if `}` immediately follows `{`.
-					// BR_ASSERT(eq(sv, cstr("}")));
+					BR_INTERNAL_ASSERT(eq(sv, cstr("}")));
 
 					// We have found `{}`...
 					detail::print(ss, first);
@@ -298,6 +299,14 @@ namespace br {
 	template <typename... Ts>
 	void printlnfmt(const char* fmt, Ts... args) {
 		printlnfmt(from_cstr(fmt), args...);
+	}
+
+
+	// Halt.
+	template <typename... Ts>
+	void halt(Ts... args) {
+		br::errlnfmt(args...);
+		exit(1);
 	}
 
 }

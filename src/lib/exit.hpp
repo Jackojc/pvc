@@ -1,7 +1,6 @@
 #ifndef BR_EXIT_H
 #define BR_EXIT_H
 
-#include <cstdio>
 #include <cstdlib>
 
 namespace br {

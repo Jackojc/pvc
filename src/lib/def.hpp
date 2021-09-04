@@ -197,15 +197,6 @@ namespace br {
 	#define BR_DEFER(close) \
 		BR_SCOPE(0, close)
 
-
-	// Absolute difference between 2 pointers.
-	template <typename T>
-	br::size_t ptrdiff(const T a, const T b) {
-		return
-			((b - a) * (b > a)) +  // b > a => b - a
-			((a - b) * (a > b));   // a > b => a - b
-	}
-
 }
 
 #endif

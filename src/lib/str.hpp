@@ -2,8 +2,7 @@
 #define BR_STR_H
 
 #include <lib/def.hpp>
-// #include <lib/assert.hpp>
-#include <lib/log.hpp>
+#include <lib/assert_internal.hpp>
 
 // String view library.
 // This library is value oriented and so
@@ -260,7 +259,7 @@ namespace br {
 			ptr = utf_char_next(ptr);
 
 		// Make sure we don't walk forwards beyond the end pointer.
-		// BR_ASSERT(ptr <= sv.end);
+		BR_INTERNAL_ASSERT(ptr <= sv.end);
 
 		return { ptr, sv.end };
 	}
@@ -299,7 +298,7 @@ namespace br {
 			ptr = utf_char_prev(ptr);
 
 		// Make sure we don't walk backwards beyond the beginning pointer.
-		// BR_ASSERT(ptr >= sv.begin);
+		BR_INTERNAL_ASSERT(ptr >= sv.begin);
 
 		return { sv.begin, ptr };
 	}

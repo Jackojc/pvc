@@ -45,8 +45,20 @@ int main(int argc, const char* argv[]) {
 
 	// BR_UNIMPLEMENTED();
 	// BR_UNREACHABLE();
-	// BR_TODO("fuck");
+	BR_TODO("fuck");
 	// BR_ASSERT(1 == 2);
+
+	BR_LOG(br::LOG_LEVEL_INFO, "foo");
+	BR_LOG(br::LOG_LEVEL_WARN, "foo");
+	BR_LOG(br::LOG_LEVEL_ERROR, "foo");
+	BR_LOG(br::LOG_LEVEL_SUCCESS, "foo");
+
+	BR_LOG(br::LOG_LEVEL_INFO, "1, 2, 3, {}, {}, {}", "a", "b", "c");
+
+	// BR_INTERNAL_ASSERT(1 == 2);
+	// BR_INTERNAL_UNIMPLEMENTED();
+
+	br::halt("uh {} oh", "fuck");
 
 	return br::EXIT_SUCCESS;
 }
