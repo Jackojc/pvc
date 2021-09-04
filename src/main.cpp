@@ -1,4 +1,5 @@
 #include <lib/def.hpp>
+#include <lib/assert.hpp>
 #include <lib/exit.hpp>
 #include <lib/log.hpp>
 #include <lib/str.hpp>
@@ -38,6 +39,14 @@ int main(int argc, const char* argv[]) {
 	br::println(nullptr);
 
 	br::printlnfmt("a: {}, b: {}", "1", "2");
+
+	// int a = 4;
+	// br::println(BR_DEBUG(a + 1));
+
+	// BR_UNIMPLEMENTED();
+	// BR_UNREACHABLE();
+	// BR_TODO("fuck");
+	// BR_ASSERT(1 == 2);
 
 	return br::EXIT_SUCCESS;
 }

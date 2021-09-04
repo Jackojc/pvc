@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <climits>
-#include <cfloat>
 
 namespace br {
 
@@ -32,34 +31,37 @@ namespace br {
 	using nullptr_t = decltype(nullptr);
 
 
-	// Integral limits.
-	// 8
-	constexpr u8_t max_u8() { return UCHAR_MAX; }
-	constexpr i8_t max_i8() { return SCHAR_MIN; }
+	// Numeric limits.
+	template <typename T> constexpr T limit_max();
+	template <typename T> constexpr T limit_min();
 
-	constexpr u8_t min_u8() { return 0; }
-	constexpr i8_t min_i8() { return SCHAR_MIN; }
+	// 8
+	template <> constexpr u8_t limit_max<u8_t>() { return UCHAR_MAX; }
+	template <> constexpr i8_t limit_max<i8_t>() { return SCHAR_MIN; }
+
+	template <> constexpr u8_t limit_min<u8_t>() { return 0; }
+	template <> constexpr i8_t limit_min<i8_t>() { return SCHAR_MIN; }
 
 	// 16
-	constexpr u16_t max_u16() { return USHRT_MAX; }
-	constexpr i16_t max_i16() { return SHRT_MAX; }
+	template <> constexpr u16_t limit_max<u16_t>() { return USHRT_MAX; }
+	template <> constexpr i16_t limit_max<i16_t>() { return SHRT_MAX; }
 
-	constexpr u16_t min_u16() { return 0; }
-	constexpr i16_t min_i16() { return SHRT_MIN; }
+	template <> constexpr u16_t limit_min<u16_t>() { return 0; }
+	template <> constexpr i16_t limit_min<i16_t>() { return SHRT_MIN; }
 
 	// 32
-	constexpr u32_t max_u32() { return UINT_MAX; }
-	constexpr i32_t max_i32() { return INT_MAX; }
+	template <> constexpr u32_t limit_max<u32_t>() { return UINT_MAX; }
+	template <> constexpr i32_t limit_max<i32_t>() { return INT_MAX; }
 
-	constexpr u32_t min_u32() { return 0; }
-	constexpr i32_t min_i32() { return INT_MIN; }
+	template <> constexpr u32_t limit_min<u32_t>() { return 0; }
+	template <> constexpr i32_t limit_min<i32_t>() { return INT_MIN; }
 
 	// 64
-	constexpr u64_t max_u64() { return ULLONG_MAX; }
-	constexpr i64_t max_i64() { return LLONG_MAX; }
+	template <> constexpr u64_t limit_max<u64_t>() { return ULLONG_MAX; }
+	template <> constexpr i64_t limit_max<i64_t>() { return LLONG_MAX; }
 
-	constexpr u64_t min_u64() { return 0; }
-	constexpr i64_t min_i64() { return LLONG_MIN; }
+	template <> constexpr u64_t limit_min<u64_t>() { return 0; }
+	template <> constexpr i64_t limit_min<i64_t>() { return LLONG_MIN; }
 
 
 	// Detect platform.
