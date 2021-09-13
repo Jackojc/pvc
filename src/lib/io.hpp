@@ -1,16 +1,19 @@
 #ifndef BR_IO_H
 #define BR_IO_H
 
+#include <iostream>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include <lib/def.hpp>
-#include <lib/assert_internal.hpp>
+#include <lib/assert.hpp>
 #include <lib/trait.hpp>
 #include <lib/misc.hpp>
 #include <lib/exit.hpp>
 #include <lib/str.hpp>
+#include <lib/vec.hpp>
 
 namespace br {
 
@@ -19,7 +22,7 @@ namespace br {
 	namespace detail {
 		// Functions to print pointer in hex format.
 		template <typename T>
-		void print_ptr(stream ss, T ptr) {
+		inline void print_ptr(stream ss, T ptr) {
 			ptr_t x = reinterpret_cast<ptr_t>(ptr);
 
 			constexpr auto buffer_size = sizeof(ptr_t) * 2;
@@ -48,13 +51,13 @@ namespace br {
 
 		// We want to print `const char*` as a string of characters,
 		// not a hex literal.
-		void print_const_char_ptr(stream ss, const char* const str) {
+		inline void print_const_char_ptr(stream ss, const char* const str) {
 			std::fwrite(str, sizeof(byte_t), std::strlen(str), ss);
 		}
 
 		// Print integral types.
 		template <typename T>
-		void print_signed(stream ss, T orig) {
+		inline void print_signed(stream ss, T orig) {
 			// Count max digits in i32.
 			constexpr auto md = count_digits(limit_max<T>());
 			char buf[md];
@@ -73,6 +76,7 @@ namespace br {
 			char* ptr = buf + md;
 			size_t count = 0;
 
+			// Run at least once to handle `0`.
 			do {
 				// Move pointer backwards from end of buffer.
 				// Increment count.
@@ -95,43 +99,44 @@ namespace br {
 		}
 
 		template <typename T>
-		void print_unsigned(stream ss, T orig) {
+		inline void print_unsigned(stream ss, T x) {
 			// See above for explanation.
 			constexpr auto md = count_digits(limit_max<T>());
-			char buf[md];
+			char buf[md] = { 0 };
 
 			char* ptr = buf + md;
 			size_t count = 0;
 
-			while (orig) {
+			// Run at least once to handle `0`.
+			do {
 				ptr--, count++;
-				*ptr = (orig % 10) + '0';
-				orig /= 10;
-			}
+				*ptr = (x % 10) + '0';
+				x /= 10;
+			} while (x);
 
 			std::fwrite(ptr, sizeof(byte_t), count, ss);
 		}
 
-		void print_bool(stream ss, bool b) {
+		inline void print_bool(stream ss, bool b) {
 			std::fwrite(b ? "true" : "false", sizeof(byte_t), std::strlen(b ? "true" : "false"), ss);
 		}
 
-		void print_str_view(stream ss, str_view str) {
+		inline void print_str_view(stream ss, str_view str) {
 			std::fwrite(str.begin, sizeof(byte_t), length(str), ss);
 		}
 
-		void print_char(stream ss, char c) {
+		inline void print_char(stream ss, char c) {
 			std::fwrite(&c, sizeof(char), 1, ss);
 		}
 
-		void print_byte(stream ss, byte_t c) {
+		inline void print_byte(stream ss, byte_t c) {
 			std::fwrite(&c, sizeof(byte_t), 1, ss);
 		}
 
 
 		// Dispatch to various print functions.
 		template <typename T>
-		void print(stream ss, T t) {
+		inline void print(stream ss, T t) {
 			if constexpr(is_same_v<T, const char*>) {
 				detail::print_const_char_ptr(ss, t);
 			}
@@ -168,14 +173,42 @@ namespace br {
 			}
 
 			else {
-				BR_INTERNAL_UNIMPLEMENTED();
+				BR_UNIMPLEMENTED();
 			}
+		}
+
+
+		template <typename T>
+		inline void print_container(stream ss, T v) {
+			print(ss, "[");
+
+			print(ss, front(v));
+
+			for (br::index_t i = 1; i != br::length(v); i++) {
+				print(ss, ", ");
+				print(ss, br::at(v, i));
+			}
+
+			print(ss, "]");
+		}
+
+
+		// Print containers.
+		template <typename T>
+		inline void print(stream ss, vec<T> v) {
+			print_container(ss, v);
+		}
+
+
+		template <typename T, size_t N>
+		inline void print(stream ss, svec<T, N> v) {
+			print_container(ss, v);
 		}
 
 
 		// Formatted print implementation.
 		template <typename T>
-		str_view printfmt_impl(stream ss, str_view fmt, T first) {
+		inline str_view printfmt_impl(stream ss, str_view fmt, T first) {
 			str_view sv;
 
 			while (not eof(fmt)) {
@@ -185,7 +218,7 @@ namespace br {
 					fmt = iter_next_view(fmt, sv);
 
 					// Ensure if `}` immediately follows `{`.
-					BR_INTERNAL_ASSERT(eq(sv, cstr("}")));
+					BR_ASSERT(eq(sv, cstr("}")));
 
 					// We have found `{}`...
 					detail::print(ss, first);
@@ -207,14 +240,14 @@ namespace br {
 		}
 
 		// Base case.
-		str_view printfmt(stream ss, str_view fmt) {
+		inline str_view printfmt(stream ss, str_view fmt) {
 			detail::print(ss, fmt);
 			return fmt;
 		}
 
 		// Call printfmt recursively.
 		template <typename T, typename... Ts>
-		str_view printfmt(stream ss, str_view fmt, T first, Ts... args) {
+		inline str_view printfmt(stream ss, str_view fmt, T first, Ts... args) {
 			fmt = detail::printfmt_impl(ss, fmt, first);
 			return printfmt(ss, fmt, args...);
 		}
@@ -225,13 +258,13 @@ namespace br {
 	// Print to stderr.
 	// Unformatted printing functions.
 	template <typename T, typename... Ts>
-	void err(T first, Ts... rest) {
+	inline void err(T first, Ts... rest) {
 		detail::print(stderr, first);
 		(err(rest), ...);
 	}
 
 	template <typename... Ts>
-	void errln(Ts... args) {
+	inline void errln(Ts... args) {
 		(err(args), ...);
 		err('\n');
 	}
@@ -239,12 +272,12 @@ namespace br {
 
 	// Formatted print.
 	template <typename... Ts>
-	void errfmt(str_view fmt, Ts... args) {
+	inline void errfmt(str_view fmt, Ts... args) {
 		detail::printfmt(stderr, fmt, args...);
 	}
 
 	template <typename... Ts>
-	void errlnfmt(str_view fmt, Ts... args) {
+	inline void errlnfmt(str_view fmt, Ts... args) {
 		detail::printfmt(stderr, fmt, args...);
 		detail::print(stderr, '\n');
 	}
@@ -252,26 +285,26 @@ namespace br {
 
 	// Overloads for `const char*` strings.
 	template <typename... Ts>
-	void errfmt(const char* fmt, Ts... args) {
-		errfmt(from_cstr(fmt), args...);
+	inline void errfmt(const char* fmt, Ts... args) {
+		errfmt(make_sv(fmt, length(fmt)), args...);
 	}
 
 	template <typename... Ts>
-	void errlnfmt(const char* fmt, Ts... args) {
-		errlnfmt(from_cstr(fmt), args...);
+	inline void errlnfmt(const char* fmt, Ts... args) {
+		errlnfmt(make_sv(fmt, length(fmt)), args...);
 	}
 
 
 	// Print to stdout.
 	// Unformatted printing functions.
 	template <typename T, typename... Ts>
-	void print(T first, Ts... rest) {
+	inline void print(T first, Ts... rest) {
 		detail::print(stdout, first);
 		(print(rest), ...);
 	}
 
 	template <typename... Ts>
-	void println(Ts... args) {
+	inline void println(Ts... args) {
 		(print(args), ...);
 		print('\n');
 	}
@@ -279,12 +312,12 @@ namespace br {
 
 	// Formatted print.
 	template <typename... Ts>
-	void printfmt(str_view fmt, Ts... args) {
+	inline void printfmt(str_view fmt, Ts... args) {
 		detail::printfmt(stdout, fmt, args...);
 	}
 
 	template <typename... Ts>
-	void printlnfmt(str_view fmt, Ts... args) {
+	inline void printlnfmt(str_view fmt, Ts... args) {
 		detail::printfmt(stdout, fmt, args...);
 		detail::print(stdout, '\n');
 	}
@@ -292,19 +325,19 @@ namespace br {
 
 	// Overloads for `const char*` strings.
 	template <typename... Ts>
-	void printfmt(const char* fmt, Ts... args) {
-		printfmt(from_cstr(fmt), args...);
+	inline void printfmt(const char* fmt, Ts... args) {
+		printfmt(make_sv(fmt, length(fmt)), args...);
 	}
 
 	template <typename... Ts>
-	void printlnfmt(const char* fmt, Ts... args) {
-		printlnfmt(from_cstr(fmt), args...);
+	inline void printlnfmt(const char* fmt, Ts... args) {
+		printlnfmt(make_sv(fmt, length(fmt)), args...);
 	}
 
 
 	// Halt.
 	template <typename... Ts>
-	void halt(Ts... args) {
+	inline void halt(Ts... args) {
 		br::errlnfmt(args...);
 		exit(1);
 	}
