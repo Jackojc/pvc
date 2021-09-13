@@ -2,7 +2,7 @@
 #define BR_STR_H
 
 #include <lib/def.hpp>
-#include <lib/assert_internal.hpp>
+#include <lib/assert.hpp>
 
 // String view library.
 // This library is value oriented and so
@@ -27,56 +27,57 @@ namespace br {
 
 
 	// Prototypes.
-	str_view from_cstr(const char* const);
+	constexpr str_view make_sv(const char* const, const char* const);
+	constexpr str_view make_sv(const char* const, size_t);
 
-	size_t length(str_view);
-	size_t length(const char*);
-	size_t utf_length(str_view);
-	bool eq(str_view, str_view);
-	bool utf_validate(str_view);
-	bool eof(str_view);
+	constexpr size_t length(str_view);
+	constexpr size_t length(const char*);
+	constexpr size_t utf_length(str_view);
+	constexpr bool eq(str_view, str_view);
+	constexpr bool utf_validate(str_view);
+	constexpr bool eof(str_view);
 
-	char_t as_char(str_view);
-	byte_t as_byte(str_view);
-	str_view as_view(str_view);
+	constexpr char_t as_char(str_view);
+	constexpr byte_t as_byte(str_view);
+	constexpr str_view as_view(str_view);
 
-	char_t char_at(str_view, index_t);
-	byte_t byte_at(str_view, index_t);
-	str_view view_at(str_view, index_t);
+	constexpr char_t char_at(str_view, index_t);
+	constexpr byte_t byte_at(str_view, index_t);
+	constexpr str_view view_at(str_view, index_t);
 
-	u8_t utf_char_length(const char* const);
-	char_t utf_char_decode(const char* const, u8_t);
+	constexpr u8_t utf_char_length(const char* const);
+	constexpr char_t utf_char_decode(const char* const, u8_t);
 
-	str_view iter_next_char(str_view, char_t&, index_t = 1);
-	str_view iter_next_byte(str_view, byte_t&, index_t = 1);
-	str_view iter_next_view(str_view, str_view&, index_t = 1);
+	constexpr str_view iter_next_char(str_view, char_t&, index_t = 1);
+	constexpr str_view iter_next_byte(str_view, byte_t&, index_t = 1);
+	constexpr str_view iter_next_view(str_view, str_view&, index_t = 1);
 
-	str_view iter_prev_char(str_view, char_t&, index_t = 1);
-	str_view iter_prev_byte(str_view, byte_t&, index_t = 1);
-	str_view iter_prev_view(str_view, str_view&, index_t = 1);
+	constexpr str_view iter_prev_char(str_view, char_t&, index_t = 1);
+	constexpr str_view iter_prev_byte(str_view, byte_t&, index_t = 1);
+	constexpr str_view iter_prev_view(str_view, str_view&, index_t = 1);
 
-	[[nodiscard]] const char* utf_char_next(const char* const);
-	[[nodiscard]] const char* utf_char_prev(const char* const);
+	[[nodiscard]] constexpr const char* utf_char_next(const char* const);
+	[[nodiscard]] constexpr const char* utf_char_prev(const char* const);
 
-	[[nodiscard]] str_view next_char(str_view, index_t = 1);
-	[[nodiscard]] str_view prev_char(str_view, index_t = 1);
-	[[nodiscard]] str_view grow_char(str_view, index_t = 1);
-	[[nodiscard]] str_view shrink_char(str_view, index_t = 1);
+	[[nodiscard]] constexpr str_view next_char(str_view, index_t = 1);
+	[[nodiscard]] constexpr str_view prev_char(str_view, index_t = 1);
+	[[nodiscard]] constexpr str_view grow_char(str_view, index_t = 1);
+	[[nodiscard]] constexpr str_view shrink_char(str_view, index_t = 1);
 
-	[[nodiscard]] str_view next_byte(str_view, index_t = 1);
-	[[nodiscard]] str_view prev_byte(str_view, index_t = 1);
-	[[nodiscard]] str_view grow_byte(str_view, index_t = 1);
-	[[nodiscard]] str_view shrink_byte(str_view, index_t = 1);
+	[[nodiscard]] constexpr str_view next_byte(str_view, index_t = 1);
+	[[nodiscard]] constexpr str_view prev_byte(str_view, index_t = 1);
+	[[nodiscard]] constexpr str_view grow_byte(str_view, index_t = 1);
+	[[nodiscard]] constexpr str_view shrink_byte(str_view, index_t = 1);
 
 
 	// Return size by getting the absolute difference between
 	// begin and end pointers.
-	size_t length(str_view sv) {
+	constexpr size_t length(str_view sv) {
 		return ptrdiff(sv.begin, sv.end);
 	}
 
 	// Return length of null terminated string.
-	size_t length(const char* str) {
+	constexpr size_t length(const char* str) {
 		size_t sz = 0;
 
 		while (*str++)
@@ -85,9 +86,13 @@ namespace br {
 		return sz;
 	}
 
-	// Convert null terminated string to str_view.
-	str_view from_cstr(const char* const str) {
-		return str_view { str, str + length(str) };
+
+	constexpr str_view make_sv(const char* const begin, const char* const end) {
+		return { begin, end };
+	}
+
+	constexpr str_view make_sv(const char* const str, size_t length) {
+		return { str, str + length };
 	}
 
 	// Check if 2 str_views are equal.
@@ -96,7 +101,7 @@ namespace br {
 	// 1. Compare pointers
 	// 2. Compare lengths
 	// 3. Compare characters
-	bool eq(str_view a, str_view b) {
+	constexpr bool eq(str_view a, str_view b) {
 		// Compare the pointers.
 		if (a.begin == b.begin and a.end == b.end)
 			return true;
@@ -122,7 +127,7 @@ namespace br {
 	// - 110xxxxx = 1 bytes follow
 	// - 1110xxxx = 2 bytes follow
 	// - 11110xxx = 3 bytes follow
-	u8_t utf_char_length(const char* const ptr) {
+	constexpr u8_t utf_char_length(const char* const ptr) {
 		// 0b1000_0000 = 0x80
 		// 0b1100_0000 = 0xC0
 		// 0b1110_0000 = 0xE0
@@ -145,12 +150,12 @@ namespace br {
 	}
 
 	// Return ptr advanced by one codepoint.
-	const char* utf_char_next(const char* const ptr) {
+	constexpr const char* utf_char_next(const char* const ptr) {
 		return ptr + utf_char_length(ptr);
 	}
 
 	// Return ptr reversed by one codepoint.
-	const char* utf_char_prev(const char* ptr) {
+	constexpr const char* utf_char_prev(const char* ptr) {
 		// Walk backwards one byte at a time while we
 		// see continuation bytes.
 		// 10xxxxxx = 0x80
@@ -164,7 +169,7 @@ namespace br {
 	}
 
 	// Decode a codepoint and return it as a br_u32.
-	char_t utf_char_decode(const char* const ptr, u8_t len) {
+	constexpr char_t utf_char_decode(const char* const ptr, u8_t len) {
 		char_t out = (u32_t)*ptr;
 
 		switch (len) {
@@ -196,7 +201,7 @@ namespace br {
 	// Calculate the character size of a UTF-8 encoded string.
 	// We iterate character by character until we reach the end
 	// pointer.
-	size_t utf_length(str_view sv) {
+	constexpr size_t utf_length(str_view sv) {
 		size_t length = 0;
 
 		for (; not eof(sv); sv = next_char(sv))
@@ -207,7 +212,7 @@ namespace br {
 
 	// Validate UTF-8 string.
 	// https://bjoern.hoehrmann.de/utf-8/decoder/dfa/
-	static const u8_t INTERNAL_UTF_TABLE__[] = {
+	constexpr u8_t INTERNAL_UTF_TABLE__[] = {
 		// The first part of the table maps bytes to character classes that
 		// to reduce the size of the transition table and create bitmasks.
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -232,7 +237,7 @@ namespace br {
 	#define BR_UTF_INVALID  1
 
 	// Validate a UTF-8 encoded string.
-	bool utf_validate(str_view sv) {
+	constexpr bool utf_validate(str_view sv) {
 		char_t state = BR_UTF_VALID;
 
 		for (; not eof(sv); sv = next_byte(sv)) {
@@ -248,7 +253,7 @@ namespace br {
 
 
 	// Character iteration.
-	str_view next_char(str_view sv, index_t n) {
+	constexpr str_view next_char(str_view sv, index_t n) {
 		if (n == 0)
 			return sv;
 
@@ -259,12 +264,12 @@ namespace br {
 			ptr = utf_char_next(ptr);
 
 		// Make sure we don't walk forwards beyond the end pointer.
-		BR_INTERNAL_ASSERT(ptr <= sv.end);
+		BR_ASSERT(ptr <= sv.end);
 
 		return { ptr, sv.end };
 	}
 
-	str_view prev_char(str_view sv, index_t n) {
+	constexpr str_view prev_char(str_view sv, index_t n) {
 		if (n == 0)
 			return sv;
 
@@ -276,7 +281,7 @@ namespace br {
 		return { ptr, sv.end };
 	}
 
-	str_view grow_char(str_view sv, index_t n) {
+	constexpr str_view grow_char(str_view sv, index_t n) {
 		if (n == 0)
 			return sv;
 
@@ -288,7 +293,7 @@ namespace br {
 		return { sv.begin, ptr };
 	}
 
-	str_view shrink_char(str_view sv, index_t n) {
+	constexpr str_view shrink_char(str_view sv, index_t n) {
 		if (n == 0)
 			return sv;
 
@@ -298,32 +303,32 @@ namespace br {
 			ptr = utf_char_prev(ptr);
 
 		// Make sure we don't walk backwards beyond the beginning pointer.
-		BR_INTERNAL_ASSERT(ptr >= sv.begin);
+		BR_ASSERT(ptr >= sv.begin);
 
 		return { sv.begin, ptr };
 	}
 
 
 	// Byte iteration.
-	str_view next_byte(str_view sv, index_t n) {
+	constexpr str_view next_byte(str_view sv, index_t n) {
 		return { sv.begin + n, sv.end };
 	}
 
-	str_view prev_byte(str_view sv, index_t n) {
+	constexpr str_view prev_byte(str_view sv, index_t n) {
 		return { sv.begin - n, sv.end };
 	}
 
-	str_view grow_byte(str_view sv, index_t n) {
+	constexpr str_view grow_byte(str_view sv, index_t n) {
 		return { sv.begin, sv.end + n };
 	}
 
-	str_view shrink_byte(str_view sv, index_t n) {
+	constexpr str_view shrink_byte(str_view sv, index_t n) {
 		return { sv.begin, sv.end - n };
 	}
 
 
 	// Mutable iteration. (decode and skip forward together)
-	str_view iter_next_char(str_view sv, char_t& c, index_t i) {
+	constexpr str_view iter_next_char(str_view sv, char_t& c, index_t i) {
 		// Skip i-1 chars. If i is zero, we add 1 so we dont overflow.
 		sv = next_char(sv, i - (i != 0));
 
@@ -337,7 +342,7 @@ namespace br {
 		return sv;
 	}
 
-	str_view iter_next_view(str_view sv, str_view& c, index_t i) {
+	constexpr str_view iter_next_view(str_view sv, str_view& c, index_t i) {
 		// Skip i-1 chars. If i is zero, we add 1 so we dont overflow.
 		sv = next_char(sv, i - (i != 0));
 
@@ -354,7 +359,7 @@ namespace br {
 		return sv;
 	}
 
-	str_view iter_next_byte(str_view sv, byte_t& c, index_t i) {
+	constexpr str_view iter_next_byte(str_view sv, byte_t& c, index_t i) {
 		sv = next_byte(sv, i);
 		c = as_byte(sv);
 		return sv;
@@ -365,19 +370,19 @@ namespace br {
 	// These versions don't really need to exist because
 	// walking backwards doesn't require codepoint length
 	// calculation but they do exist for consistancies sake.
-	str_view iter_prev_char(str_view sv, char_t& c, index_t i) {
+	constexpr str_view iter_prev_char(str_view sv, char_t& c, index_t i) {
 		sv = prev_char(sv, i);
 		c = as_char(sv);
 		return sv;
 	}
 
-	str_view iter_prev_view(str_view sv, str_view& c, index_t i) {
+	constexpr str_view iter_prev_view(str_view sv, str_view& c, index_t i) {
 		sv = prev_char(sv, i);
 		c = as_view(sv);
 		return sv;
 	}
 
-	str_view iter_prev_byte(str_view sv, byte_t& c, index_t i) {
+	constexpr str_view iter_prev_byte(str_view sv, byte_t& c, index_t i) {
 		sv = prev_byte(sv, i);
 		c = as_byte(sv);
 		return sv;
@@ -386,18 +391,18 @@ namespace br {
 
 	// If the size of the view is 0, it means the pointers
 	// are equal and so we are at the end.
-	bool eof(str_view sv) {
+	constexpr bool eof(str_view sv) {
 		return length(sv) == 0;
 	}
 
 
 	// Return a UTF-8 codepoint decoded to a u32 integer.
-	char_t as_char(str_view sv) {
+	constexpr char_t as_char(str_view sv) {
 		return utf_char_decode(sv.begin, utf_char_length(sv.begin));
 	}
 
 	// Just derefence the begin pointer.
-	byte_t as_byte(str_view sv) {
+	constexpr byte_t as_byte(str_view sv) {
 		return *sv.begin;
 	}
 
@@ -405,23 +410,23 @@ namespace br {
 	// rather than decoding to an integer. This can be useful
 	// if you don't care what the character is and don't want to
 	// pay the cost of decoding.
-	str_view as_view(str_view sv) {
+	constexpr str_view as_view(str_view sv) {
 		return { sv.begin, sv.begin + utf_char_length(sv.begin) };
 	}
 
 
 	// Indexing.
-	byte_t byte_at(str_view sv, index_t i) {
+	constexpr byte_t byte_at(str_view sv, index_t i) {
 		sv = next_byte(sv, i);
 		return as_byte(sv);
 	}
 
-	char_t char_at(str_view sv, index_t i) {
+	constexpr char_t char_at(str_view sv, index_t i) {
 		sv = next_char(sv, i);
 		return as_char(sv);
 	}
 
-	str_view view_at(str_view sv, index_t i) {
+	constexpr str_view view_at(str_view sv, index_t i) {
 		sv = next_char(sv, i);
 		return as_view(sv);
 	}
