@@ -188,14 +188,26 @@ namespace br {
 	// Evaluate expressions at beginning and ending of a scope.
 	#define BR_SCOPE(open, close) \
 		for ( \
-			br_index BR_VAR(i) = ((open), 0); \
+			br::index_t BR_VAR(i) = ((open), 0); \
 			!BR_VAR(i); \
 			(BR_VAR(i)++), (close) \
 		)
 
 	// Evaluate expression at end of scope.
 	#define BR_DEFER(close) \
-		BR_SCOPE(0, close)
+		for ( \
+			br::index_t BR_VAR(i) = 0; \
+			!BR_VAR(i); \
+			(BR_VAR(i)++), (close) \
+		)
+
+
+	// Print filename and line number `[foo.cpp:12]`
+	#define BR_TRACE "[" __FILE__ ":" BR_STR(__LINE__) "] "
+
+
+	// Constants
+	constexpr size_t VEC_MINIMUM_LENGTH = 10;
 
 }
 
