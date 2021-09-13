@@ -3,6 +3,7 @@
 
 #include <lib/def.hpp>
 #include <lib/io.hpp>
+#include <lib/assert.hpp>
 
 namespace br {
 
@@ -45,12 +46,103 @@ namespace br {
 	#define BR_ANSI_BG_BRIGHT_CYAN     "\x1b[46;1m"
 	#define BR_ANSI_BG_BRIGHT_WHITE    "\x1b[47;1m"
 
-	#define BR_LOG_INFO_STYLE     BR_ANSI_BOLD BR_ANSI_FG_BRIGHT_WHITE  "[-]" BR_ANSI_RESET
-	#define BR_LOG_WARN_STYLE     BR_ANSI_BOLD BR_ANSI_FG_BRIGHT_BLUE   "[*]" BR_ANSI_RESET
-	#define BR_LOG_ERROR_STYLE    BR_ANSI_BOLD BR_ANSI_FG_BRIGHT_RED    "[!]" BR_ANSI_RESET
-	#define BR_LOG_SUCCESS_STYLE  BR_ANSI_BOLD BR_ANSI_FG_BRIGHT_YELLOW "[^]" BR_ANSI_RESET
+	enum {
+		ANSI_RESET,
+		ANSI_BOLD,
 
-	#define BR_TRACE "[" __FILE__ ":" BR_STR(__LINE__) "] "
+		ANSI_FG_BLACK,
+		ANSI_FG_RED,
+		ANSI_FG_GREEN,
+		ANSI_FG_YELLOW,
+		ANSI_FG_BLUE,
+		ANSI_FG_MAGENTA,
+		ANSI_FG_CYAN,
+		ANSI_FG_WHITE,
+
+		ANSI_FG_BRIGHT_BLACK,
+		ANSI_FG_BRIGHT_RED,
+		ANSI_FG_BRIGHT_GREEN,
+		ANSI_FG_BRIGHT_YELLOW,
+		ANSI_FG_BRIGHT_BLUE,
+		ANSI_FG_BRIGHT_MAGENTA,
+		ANSI_FG_BRIGHT_CYAN,
+		ANSI_FG_BRIGHT_WHITE,
+
+		ANSI_BG_BLACK,
+		ANSI_BG_RED,
+		ANSI_BG_GREEN,
+		ANSI_BG_YELLOW,
+		ANSI_BG_BLUE,
+		ANSI_BG_MAGENTA,
+		ANSI_BG_CYAN,
+		ANSI_BG_WHITE,
+
+		ANSI_BG_BRIGHT_BLACK,
+		ANSI_BG_BRIGHT_RED,
+		ANSI_BG_BRIGHT_GREEN,
+		ANSI_BG_BRIGHT_YELLOW,
+		ANSI_BG_BRIGHT_BLUE,
+		ANSI_BG_BRIGHT_MAGENTA,
+		ANSI_BG_BRIGHT_CYAN,
+		ANSI_BG_BRIGHT_WHITE,
+
+		ANSI_TOTAL,
+	};
+
+	namespace detail {
+		constexpr const char* INTERNAL_COLOUR_TABLE__[] = {
+			BR_ANSI_RESET, "",
+			BR_ANSI_BOLD, "",
+
+			BR_ANSI_FG_BLACK, "",
+			BR_ANSI_FG_RED, "",
+			BR_ANSI_FG_GREEN, "",
+			BR_ANSI_FG_YELLOW, "",
+			BR_ANSI_FG_BLUE, "",
+			BR_ANSI_FG_MAGENTA, "",
+			BR_ANSI_FG_CYAN, "",
+			BR_ANSI_FG_WHITE, "",
+
+			BR_ANSI_FG_BRIGHT_BLACK, "",
+			BR_ANSI_FG_BRIGHT_RED, "",
+			BR_ANSI_FG_BRIGHT_GREEN, "",
+			BR_ANSI_FG_BRIGHT_YELLOW, "",
+			BR_ANSI_FG_BRIGHT_BLUE, "",
+			BR_ANSI_FG_BRIGHT_MAGENTA, "",
+			BR_ANSI_FG_BRIGHT_CYAN, "",
+			BR_ANSI_FG_BRIGHT_WHITE, "",
+
+			BR_ANSI_BG_BLACK, "",
+			BR_ANSI_BG_RED, "",
+			BR_ANSI_BG_GREEN, "",
+			BR_ANSI_BG_YELLOW, "",
+			BR_ANSI_BG_BLUE, "",
+			BR_ANSI_BG_MAGENTA, "",
+			BR_ANSI_BG_CYAN, "",
+			BR_ANSI_BG_WHITE, "",
+
+			BR_ANSI_BG_BRIGHT_BLACK, "",
+			BR_ANSI_BG_BRIGHT_RED, "",
+			BR_ANSI_BG_BRIGHT_GREEN, "",
+			BR_ANSI_BG_BRIGHT_YELLOW, "",
+			BR_ANSI_BG_BRIGHT_BLUE, "",
+			BR_ANSI_BG_BRIGHT_MAGENTA, "",
+			BR_ANSI_BG_BRIGHT_CYAN, "",
+			BR_ANSI_BG_BRIGHT_WHITE, "",
+		};
+	}
+
+	// Get a colour given its name and whether or not colours are enabled.
+	inline auto colour(index_t colour, bool enabled) {
+		return detail::INTERNAL_COLOUR_TABLE__[colour * 2 + !enabled];
+	}
+
+
+	#define BR_LOG_INFO_STYLE     BR_ANSI_RESET     "[-]"
+	#define BR_LOG_WARN_STYLE     BR_ANSI_FG_BLUE   "[*]"
+	#define BR_LOG_ERROR_STYLE    BR_ANSI_FG_RED    "[!]"
+	#define BR_LOG_SUCCESS_STYLE  BR_ANSI_FG_GREEN  "[^]"
+
 
 	enum: u8_t {
 		LOG_LEVEL_INFO,
@@ -59,22 +151,31 @@ namespace br {
 		LOG_LEVEL_SUCCESS,
 	};
 
-	template <typename... Ts>
-	inline void log(u8_t lvl, Ts... args) {
-		switch (lvl) {
-			case LOG_LEVEL_INFO:    br::err(BR_LOG_INFO_STYLE " ");    break;
-			case LOG_LEVEL_WARN:    br::err(BR_LOG_WARN_STYLE " ");    break;
-			case LOG_LEVEL_ERROR:   br::err(BR_LOG_ERROR_STYLE " ");   break;
-			case LOG_LEVEL_SUCCESS: br::err(BR_LOG_SUCCESS_STYLE " "); break;
-		}
 
-		br::errlnfmt(args...);
+	namespace detail {
+		inline auto lvl_to_style(u8_t lvl) {
+			switch (lvl) {
+				case LOG_LEVEL_INFO:    return BR_LOG_INFO_STYLE " ";
+				case LOG_LEVEL_WARN:    return BR_LOG_WARN_STYLE " ";
+				case LOG_LEVEL_ERROR:   return BR_LOG_ERROR_STYLE " ";
+				case LOG_LEVEL_SUCCESS: return BR_LOG_SUCCESS_STYLE " ";
+			}
+
+			return "";
+		}
 	}
 
-	#define BR_LOG(lvl, ...) \
-		do { \
-			BR_DEBUG_RUN( br::log(lvl, BR_TRACE  __VA_ARGS__) ); \
-		} while (0)
+
+	#define BR_LOG(...) \
+		do { [BR_VAR(fn_name) = __func__] (br::u8_t BR_VAR(lvl), auto... BR_VAR(args)) { \
+			BR_DEBUG_RUN(( br::err(BR_TRACE, br::detail::lvl_to_style(BR_VAR(lvl))) )); \
+			BR_DEBUG_RUN(( br::err("`", BR_VAR(fn_name), "`") )); \
+			\
+			if constexpr(sizeof...(BR_VAR(args)) > 0) \
+				BR_DEBUG_RUN( (br::err(" => ", BR_VAR(args)...)) ); \
+			\
+			BR_DEBUG_RUN(( br::errln( BR_ANSI_RESET ) )); \
+		} ( __VA_ARGS__ ); } while (0)
 
 }
 
