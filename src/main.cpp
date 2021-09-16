@@ -5,7 +5,8 @@
 #include <lib/misc.hpp>
 #include <lib/str.hpp>
 #include <lib/mem.hpp>
-#include <lib/io.hpp>
+#include <lib/print.hpp>
+#include <lib/file.hpp>
 #include <lib/vec.hpp>
 #include <lib/log.hpp>
 #include <lib/debug.hpp>
@@ -88,6 +89,9 @@ int main(int argc, const char* argv[]) {
 
 		br::println(v);
 	}
+
+	auto map = br::map_file(cstr("README.md"));
+	br::print(map);
 
 	// BR_INTERNAL_ASSERT(1 == 2);
 	// BR_INTERNAL_UNIMPLEMENTED();

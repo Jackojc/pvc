@@ -2,7 +2,7 @@
 #define BR_LOG_H
 
 #include <lib/def.hpp>
-#include <lib/io.hpp>
+#include <lib/print.hpp>
 #include <lib/assert.hpp>
 
 namespace br {

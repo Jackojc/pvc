@@ -27,6 +27,7 @@ namespace br {
 	using size_t   = br::u64_t;
 	using length_t = br::u64_t;
 	using ptr_t    = uintptr_t;
+	using fd_t     = br::i32_t;
 
 	using nullptr_t = decltype(nullptr);
 
@@ -208,6 +209,7 @@ namespace br {
 
 	// Constants
 	constexpr size_t VEC_MINIMUM_LENGTH = 10;
+	constexpr size_t PATH_MAXIMUM_LENGTH = 4096;
 
 }
 

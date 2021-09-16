@@ -8,15 +8,15 @@
 namespace br {
 
 	// Copy a region of memory to another (regions must not overlap)
-	template <typename T>
-	inline void memcpy(T* const src, T* dest, size_t count) {
+	template <typename T1, typename T2>
+	inline void memcpy(T1* src, T2* dest, size_t count) {
 		for (index_t i = 0; i < count; i++) {
-			dest[i] = src[i];
+			*((char*)dest + i) = *((char*)src + i);
 		}
 	}
 
-	template <typename T>
-	inline void memmove(T* const src, T* dest, size_t count) {
+	template <typename T1, typename T2>
+	inline void memmove(T1* src, T2* dest, size_t count) {
 		index_t i;
 		index_t end;
 		i32_t direction;
@@ -34,7 +34,7 @@ namespace br {
 		}
 
 		for (; i != end; i += direction)
-			dest[i] = src[i];
+			*((char*)dest + i) = *((char*)src + i);
 	}
 
 
