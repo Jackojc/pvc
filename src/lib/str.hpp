@@ -3,6 +3,7 @@
 
 #include <lib/def.hpp>
 #include <lib/assert.hpp>
+#include <lib/misc.hpp>
 
 // String view library.
 // This library is value oriented and so
@@ -120,33 +121,25 @@ namespace br {
 	}
 
 
-	// Get the size of a UTF-8 codepoint.
-	// We use the first byte to determine
-	// the number of bytes that follow.
-	// - 1xxxxxxx = 0 bytes follow
-	// - 110xxxxx = 1 bytes follow
-	// - 1110xxxx = 2 bytes follow
-	// - 11110xxx = 3 bytes follow
+	// Efficiently calculate the number of bytes in
+	// a UTF-8 encoded codepoint.
+	// We use the first byte to determine the
+	// number of bytes in the codepoint.
 	constexpr u8_t utf_char_length(const char* const ptr) {
-		// 0b1000_0000 = 0x80
-		// 0b1100_0000 = 0xC0
-		// 0b1110_0000 = 0xE0
-		// 0b1111_0000 = 0xF0
-		// 0b1111_1000 = 0xF8
+		// Cast to u32_t and shift first byte into most
+		// significant position then negate.
+		u32_t u = ~(((u32_t)ptr[0]) << 24);
 
-		const bool vals[] = {
-			(*ptr & 0x80) == 0x00,
-			(*ptr & 0xE0) == 0xC0,
-			(*ptr & 0xF0) == 0xE0,
-			(*ptr & 0xF8) == 0xF0,
+		// Map result of countl_zero(u) to return value.
+		// 0 -> 1 byte(s)
+		// 2 -> 2 byte(s)
+		// 3 -> 3 byte(s)
+		// 4 -> 4 byte(s)
+		constexpr u32_t out[] = {
+			1, 1, 2, 3, 4
 		};
 
-		u8_t out = 0;
-
-		for (u8_t i = 0; i < (sizeof(vals) / sizeof(bool)); ++i)
-			vals[i] and (out = i);
-
-		return out + 1;
+		return out[countl_zero(u)];
 	}
 
 	// Return ptr advanced by one codepoint.
@@ -162,40 +155,36 @@ namespace br {
 		// 01xxxxxx = 0x40
 		// We want the first bit to be set but _not_
 		// the second bit.
-		while ((*ptr & 0x80) and not (*ptr & 0x40))
+		while ((*ptr & 0b1000'0000) and not (*ptr & 0b0100'0000))
 			--ptr;
 
 		return ptr;
 	}
 
 	// Decode a codepoint and return it as a br_u32.
-	constexpr char_t utf_char_decode(const char* const ptr, u8_t len) {
-		char_t out = (u32_t)*ptr;
+	constexpr char_t utf_char_decode(const char* const ptr, const u8_t sz) {
+		constexpr u8_t max_codepoint_sz = 4u;
+		constexpr u8_t cm = 0b00111111;  // inverted codepoint mask
 
-		switch (len) {
-			case 1:
-				return out;
+		// Calculate row in lookup table based on the number
+		// of bytes in the codepoint.
+		const auto row = ((max_codepoint_sz * 2u) * (sz - 1u));
 
-			case 2:
-				return
-					((out & 31u) << 6u) |
-					((u32_t)ptr[1] & 63u);
+		constexpr u8_t masks[] = {
+		//  v-------masks--------v          v----scalars----v
+			0b11111111, 0u, 0u, 0u, /* | */  0u,  0u, 0u, 0u, // 1 byte(s)
+			0b00011111, cm, 0u, 0u, /* | */  6u,  0u, 0u, 0u, // 2 byte(s)
+			0b00001111, cm, cm, 0u, /* | */ 12u,  6u, 0u, 0u, // 3 byte(s)
+			0b00000111, cm, cm, cm, /* | */ 18u, 12u, 6u, 0u, // 4 byte(s)
+		};
 
-			case 3:
-				return
-					((out & 15u) << 12u) |
-					(((u32_t)ptr[1] & 63u) << 6u) |
-					((u32_t)ptr[2] & 63u);
+		char_t out = 0;
 
-			case 4:
-				return
-					((out & 7u) << 18u) |
-					(((u32_t)ptr[1] & 63u) << 12u) |
-					(((u32_t)ptr[2] & 63u) << 6u) |
-					((u32_t)ptr[3] & 63u);
-		}
+		// Loop through the
+		for (char_t i = 0; i != max_codepoint_sz; i++)
+			out |= (ptr[min<u8_t>(i, sz)] & masks[row + i]) << masks[row + 4u + i];
 
-		return 0;
+		return out;
 	}
 
 	// Calculate the character size of a UTF-8 encoded string.

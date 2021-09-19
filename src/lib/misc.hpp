@@ -15,8 +15,7 @@ namespace br {
 
 
 	// Branchless ternary.
-	template <typename T>
-	auto condition(bool cond, T a, T b) {
+	template <typename T> constexpr auto condition(bool cond, T a, T b) {
 		return (cond * a) + (!cond * b);
 	}
 
@@ -27,13 +26,25 @@ namespace br {
 	}
 
 
-	// Branchless min & max.
+	// Branchless min, max and clamp.
 	template <typename T> constexpr auto min(T a, T b) {
 		return condition(a < b, a, b);
 	}
 
 	template <typename T> constexpr auto max(T a, T b) {
 		return condition(a > b, a, b);
+	}
+
+	template <typename T> constexpr T clamp(T x, T mn, T mx) {
+		return max(mn, min(x, mx));
+	}
+
+
+	// Swap two values by ref.
+	template <typename T> constexpr void swap(T& a, T& b) {
+		T tmp = a;
+		a = b;
+		b = tmp;
 	}
 
 
@@ -92,6 +103,24 @@ namespace br {
 
 	template <typename T> constexpr auto back(T v) {
 		return at(v, length(v) - 1);
+	}
+
+
+	// Count leading zeros.
+	constexpr u32_t countl_zero(u32_t x) {
+		#if defined(BR_COMPILER_CLANG) || defined(BR_COMPILER_GCC)
+			return __builtin_clz(x);
+		#else
+			x = ~x;
+			uint32_t count = 0;
+
+			while (x & (1u << 31u)) {
+				count++;
+				x <<= 1;
+			}
+
+			return count;
+		#endif
 	}
 
 }
