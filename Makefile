@@ -15,19 +15,24 @@ options:
 	@printf "san \033[32m$(sanitizer)\033[0m | "
 	@printf "cflags \033[32m-std=$(CXXSTD) $(CXXFLAGS)\033[0m\n"
 
-pvc: config
+src/lib/unicode_internal.hpp: $(wildcard unicode/*)
+	@unicode/unicode.py unicode/UnicodeData.txt > src/lib/unicode_internal.hpp
+
+generate_unicode: src/lib/unicode_internal.hpp
+
+pvc: config generate_unicode
 	@$(CXX) -std=$(CXXSTD) $(CXXWARN) $(CXXFLAGS) $(LDFLAGS) $(CPPFLAGS) $(INC) \
 		$(LIBS) -o $(BUILD_DIR)/$(TARGET) $(SRC)
 
 clean:
 	rm -rf $(BUILD_DIR)/ *.gcda
 
-$(TEST_TARGET): config
+$(TEST_TARGET): config generate_unicode
 	@$(CXX) -std=$(CXXSTD) $(CXXWARN) $(CXXFLAGS) $(LDFLAGS) $(CPPFLAGS) $(INC) \
 		$(LIBS) -o $@ $(TEST_DIR)/$(basename $(notdir $@)).cpp
 
 test: $(TEST_TARGET)
 	@( BUILD_DIR=$(BUILD_DIR) TEST_DIR=$(TEST_DIR) TEST_FILE=$(TEST_FILE) ./test.sh )
 
-.PHONY: all options clean test
+.PHONY: all options clean test generate_unicode
 
