@@ -90,6 +90,22 @@ namespace br {
 	}
 
 
+	// Increase capacity by N.
+	template <typename T>
+	constexpr vec<T> reserve(vec<T> v, size_t n) {
+		v.capacity += n;
+		v.data = br::alloc<T>(v.capacity, v.data);
+		return v;
+	}
+
+	// Emplace N new elements.
+	template <typename T>
+	constexpr vec<T> resize(vec<T> v, size_t n) {
+		while (n--)
+			emplace(v);
+	}
+
+
 	// Make a vector with no elements.
 	template <typename T>
 	constexpr auto make_vec() {
