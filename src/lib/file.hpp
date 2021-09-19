@@ -17,6 +17,17 @@ extern "C" {
 
 namespace br {
 
+	inline void unmap_file(str_view file) {
+#ifdef BR_PLATFORM_LINUX
+		i32_t status = munmap((void*)file.begin, length(file));
+		BR_ASSERT(status != -1);
+		(void)status;
+#else
+		(void)status;
+		BR_UNIMPLEMENTED();
+#endif
+	}
+
 	// Map a file and return a string view.
 	inline str_view map_file(str_view path) {
 #ifdef BR_PLATFORM_LINUX
