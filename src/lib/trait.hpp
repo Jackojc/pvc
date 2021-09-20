@@ -137,10 +137,12 @@ namespace br {
 	constexpr bool is_array_v = is_array<T>::value;
 
 
-	// add_rvalue_reference
-	template <typename T>
-	struct type_identity { using type = T; };
+	// type_identity
+	template <typename T> struct type_identity { using type = T; };
+	template <typename T> using type_identity_t = typename type_identity<T>::type;
 
+
+	// add_rvalue_reference
 	template <typename T>
 	auto try_add_rvalue_reference(int) -> type_identity<T&&>;
 
@@ -307,6 +309,86 @@ namespace br {
 	template <typename Test, template<typename...> class Ref>
 	constexpr bool is_specialisation_v = is_specialisation<Test, Ref>::value;
 
+
+	// remove_extent
+	template <typename T> struct remove_extent { using type = T; };
+	template <typename T> struct remove_extent<T[]> { using type = T; };
+	template <typename T, size_t N> struct remove_extent<T[N]> { using type = T; };
+
+	template <typename T>
+	using remove_extent_t = typename remove_extent<T>::type;
+
+
+	// is_const
+	template <typename T> struct is_const: false_type {};
+	template <typename T> struct is_const<const T>: true_type {};
+
+	template <typename T>
+	constexpr bool is_const_v = is_const<T>::value;
+
+
+	// is_reference
+	template <typename T> struct is_reference: false_type {};
+	template <typename T> struct is_reference<T&>: true_type {};
+	template <typename T> struct is_reference<T&&>: true_type {};
+
+	template <typename T>
+	constexpr bool is_reference_v = is_reference<T>::value;
+
+
+	// remove_reference
+	template <typename T> struct remove_reference      { using type = T; };
+	template <typename T> struct remove_reference<T&>  { using type = T; };
+	template <typename T> struct remove_reference<T&&> { using type = T; };
+
+	template <typename T>
+	using remove_reference_t = typename remove_reference<T>::type;
+
+
+	// add_pointer
+	namespace detail {
+		template <typename T> auto try_add_pointer(int) -> type_identity<typename remove_reference<T>::type*>;
+		template <typename T> auto try_add_pointer(...) -> type_identity<T>;
+	}
+
+	template <typename T>
+	struct add_pointer: decltype(detail::try_add_pointer<T>(0)) {};
+
+	template <typename T>
+	using add_pointer_t = typename add_pointer<T>::type;
+
+
+	// is_function
+	template <typename T>
+	struct is_function: integral_constant<
+		bool,
+		not is_const<const T>::value and not is_reference<T>::value
+	> {};
+
+	template <typename T>
+	constexpr bool is_function_v = is_function<T>::value;
+
+
+	// decay
+	template <typename T>
+	struct decay {
+		private:
+			using U = typename remove_reference<T>::type;
+
+		public:
+			using type = typename conditional<
+				is_array<U>::value,
+				typename remove_extent<U>::type*,
+					typename conditional<
+						is_function<U>::value,
+						typename add_pointer<U>::type,
+						typename remove_cv<U>::type
+					>::type
+				>::type;
+	};
+
+	template <typename T>
+	using decay_t = typename decay<T>::type;
 }
 
 #endif
