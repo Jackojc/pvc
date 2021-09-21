@@ -15,10 +15,10 @@ options:
 	@printf "san \033[32m$(sanitizer)\033[0m | "
 	@printf "cflags \033[32m-std=$(CXXSTD) $(CXXFLAGS)\033[0m\n"
 
-src/lib/unicode_internal.hpp: $(wildcard unicode/*)
-	@unicode/unicode.py unicode/UnicodeData.txt > src/lib/unicode_internal.hpp
+$(UNICODE_HPP): $(UNICODE_GEN)
+	@$(UNICODE_PY) $(UNICODE_DATA) > $(UNICODE_HPP)
 
-generate_unicode: src/lib/unicode_internal.hpp
+generate_unicode: $(UNICODE_HPP)
 
 pvc: config generate_unicode
 	@$(CXX) -std=$(CXXSTD) $(CXXWARN) $(CXXFLAGS) $(LDFLAGS) $(CPPFLAGS) $(INC) \
