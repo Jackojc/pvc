@@ -115,9 +115,13 @@ int main(int argc, const char* argv[]) {
 	// 	br::printlnfmt("handle_foo: '{}'", arg);
 	// };
 
-	bool foo = false;
-	br::argparse(argc, argv, cstr("[help msg]"),
-		br::opt_t{br::opt_toggle(foo), cstr("--foo"), cstr("-f")}
+	const auto positional = [] (br::str_view sv) {
+		br::printlnfmt("positional: '{}'", sv);
+	};
+
+	br::str_view foo;
+	br::argparse(argc, argv, cstr("[help msg]"), br::positional(positional),
+		br::opt_t{br::opt_arg(foo), cstr("--foo"), cstr("-f")}
 	);
 
 	br::printlnfmt("foo: '{}'", foo);
