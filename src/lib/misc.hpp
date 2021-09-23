@@ -70,16 +70,22 @@ namespace br {
 	}
 
 
-	// Check if any arguments are equal.
+	// Check if any arguments are true.
 	template <typename T, typename... Ts>
 	constexpr bool any(T&& first, Ts&&... rest) {
-		return ((first == rest) or ...);
+		return ((first or rest) or ...);
 	}
 
-	// Check if all arguments are equal.
+	// Check if all arguments are true.
 	template <typename T, typename... Ts>
 	constexpr bool all(T&& first, Ts&&... rest) {
-		return ((first == rest) and ...);
+		return ((first and rest) and ...);
+	}
+
+	// Check if all arguments are false.
+	template <typename T, typename... Ts>
+	constexpr bool none(T&& first, Ts&&... rest) {
+		return ((not first and not rest) and ...);
 	}
 
 

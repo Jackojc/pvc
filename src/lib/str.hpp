@@ -15,8 +15,8 @@ namespace br {
 
 	// Non-owning string view.
 	struct str_view {
-		const char* begin;
-		const char* end;
+		const char* begin = nullptr;
+		const char* end   = nullptr;
 	};
 
 	// Convert a string literal to a str_view.
@@ -37,6 +37,7 @@ namespace br {
 	constexpr bool eq(str_view, str_view);
 	constexpr bool utf_validate(str_view);
 	constexpr bool eof(str_view);
+	constexpr bool is_null(str_view);
 
 	constexpr char_t as_char(str_view);
 	constexpr byte_t as_byte(str_view);
@@ -47,7 +48,7 @@ namespace br {
 	constexpr str_view view_at(str_view, index_t);
 
 	constexpr u8_t utf_char_length(const char* const);
-	constexpr char_t utf_char_decode(const char* const, u8_t);
+	constexpr char_t utf_char_decode(const char* const, size_t);
 
 	constexpr str_view iter_next_char(str_view, char_t&, index_t = 1);
 	constexpr str_view iter_next_byte(str_view, byte_t&, index_t = 1);
@@ -162,29 +163,65 @@ namespace br {
 	}
 
 	// Decode a codepoint and return it as a br_u32.
-	constexpr char_t utf_char_decode(const char* const ptr, const u8_t sz) {
-		constexpr u8_t max_codepoint_sz = 4u;
-		constexpr u8_t cm = 0b00111111;  // inverted codepoint mask
+	// constexpr char_t utf_char_decode(const char* const ptr, const u8_t sz) {
+	// 	constexpr u8_t max_codepoint_sz = 4u;
+	// 	constexpr u8_t cm = 0b00111111;  // inverted codepoint mask
 
-		// Calculate row in lookup table based on the number
-		// of bytes in the codepoint.
-		const auto row = ((max_codepoint_sz * 2u) * (sz - 1u));
+	// 	// Calculate row in lookup table based on the number
+	// 	// of bytes in the codepoint.
+	// 	const auto row = ((max_codepoint_sz * 2u) * (sz - 1u));
 
-		constexpr u8_t masks[] = {
-		//  v-------masks--------v          v----scalars----v
-			0b11111111, 0u, 0u, 0u, /* | */  0u,  0u, 0u, 0u, // 1 byte(s)
-			0b00011111, cm, 0u, 0u, /* | */  6u,  0u, 0u, 0u, // 2 byte(s)
-			0b00001111, cm, cm, 0u, /* | */ 12u,  6u, 0u, 0u, // 3 byte(s)
-			0b00000111, cm, cm, cm, /* | */ 18u, 12u, 6u, 0u, // 4 byte(s)
+	// 	constexpr u8_t masks[] = {
+	// 	//  v-------masks--------v          v----scalars----v
+	// 		0b11111111, 0u, 0u, 0u, /* | */  0u,  0u, 0u, 0u, // 1 byte(s)
+	// 		0b00011111, cm, 0u, 0u, /* | */  6u,  0u, 0u, 0u, // 2 byte(s)
+	// 		0b00001111, cm, cm, 0u, /* | */ 12u,  6u, 0u, 0u, // 3 byte(s)
+	// 		0b00000111, cm, cm, cm, /* | */ 18u, 12u, 6u, 0u, // 4 byte(s)
+	// 	};
+
+	// 	char_t out = 0;
+
+	// 	// Loop through the
+	// 	for (char_t i = 0; i != max_codepoint_sz; i++)
+	// 		out |= (ptr[min<u8_t>(i, sz)] & masks[row + i]) << masks[row + 4u + i];
+
+	// 	return out;
+	// }
+
+	constexpr char_t utf_char_decode(const char* const ptr, const size_t sz) {
+		constexpr auto loop = [] (const char* const ptr, const size_t sz) {
+			// The table below has a row for each of the 4 possible sizes of codepoint.
+			// The first column is the size mask
+			constexpr u8_t masks[] = {
+			//  v-------------------masks--------------------v     |    v----shifts----v
+				0b11111111, 0b00000000, 0b00000000, 0b00000000, /* | */  0u,  0u, 0u, 0u, // 1 byte(s)
+				0b00011111, 0b00111111, 0b00000000, 0b00000000, /* | */  6u,  0u, 0u, 0u, // 2 byte(s)
+				0b00001111, 0b00111111, 0b00111111, 0b00000000, /* | */ 12u,  6u, 0u, 0u, // 3 byte(s)
+				0b00000111, 0b00111111, 0b00111111, 0b00111111, /* | */ 18u, 12u, 6u, 0u, // 4 byte(s)
+			};
+
+			constexpr size_t max_codepoint_sz = 4u;
+			const auto row = ((max_codepoint_sz * 2u) * (sz - 1u)); // Row in the table above to use.
+
+			char_t out = 0;
+
+			// Loop through bytes in codepoint and perform 3 operations:
+			// 1. We mask out either the starting bytes size specifier _or_ the continuation marker
+			// 2. We shift the byte left by `i * 6u`
+			// 3. We OR it with `out` to insert the byte in the correct location
+			for (index_t i = 0; i != sz; i++)
+				out |= (ptr[i] & masks[row + i]) << masks[row + 4u + i];
+
+			return out;
 		};
 
-		char_t out = 0;
+		switch (sz) {
+			[[unlikely]] case 2: return loop(ptr, 2);
+			[[unlikely]] case 3: return loop(ptr, 3);
+			[[unlikely]] case 4: return loop(ptr, 4);
+		}
 
-		// Loop through the
-		for (char_t i = 0; i != max_codepoint_sz; i++)
-			out |= (ptr[min<u8_t>(i, sz)] & masks[row + i]) << masks[row + 4u + i];
-
-		return out;
+		return loop(ptr, 1);
 	}
 
 	// Calculate the character size of a UTF-8 encoded string.
@@ -382,6 +419,12 @@ namespace br {
 	// are equal and so we are at the end.
 	constexpr bool eof(str_view sv) {
 		return length(sv) == 0;
+	}
+
+
+	// Check if str_view is initialised.
+	constexpr bool is_null(str_view sv) {
+		return sv.begin == nullptr or sv.end == nullptr;
 	}
 
 
