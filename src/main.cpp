@@ -10,6 +10,8 @@
 #include <lib/vec.hpp>
 #include <lib/log.hpp>
 #include <lib/debug.hpp>
+#include <lib/unicode.hpp>
+#include <lib/arg.hpp>
 
 int main(int argc, const char* argv[]) {
 	// auto str = cstr("hello there");
@@ -63,40 +65,62 @@ int main(int argc, const char* argv[]) {
 	// int a[10];
 	// br::println(br::length(a));
 
-	{
-		auto v = br::make_svec<int, 10>();
+	// {
+	// 	auto v = br::make_svec<int, 10>();
 
-		for (br::index_t i = 0; i < 10; i++) {
-			v = br::emplace(v, i + 1);
-		}
+	// 	for (br::index_t i = 0; i < 10; i++) {
+	// 		v = br::emplace(v, i + 1);
+	// 	}
 
 		// br::printlnfmt("cap: {}, length: {}", br::capacity(v), br::length(v));
-		br::println(v);
-	}
+	// 	br::println(v);
+	// }
 
-	auto v = br::make_vec(3, 2, 1);
+	// auto v = br::make_vec(3, 2, 1);
 
-	BR_DEFER(v = br::destroy_vec(v)) {
-		for (br::index_t i = 0; i < 10; i++) {
-			v = br::emplace(v, i + 1);
-		}
+	// BR_DEFER(v = br::destroy_vec(v)) {
+	// 	for (br::index_t i = 0; i < 10; i++) {
+	// 		v = br::emplace(v, i + 1);
+	// 	}
 
-		br::printlnfmt("cap: {}, length: {}", br::capacity(v), br::length(v));
-		br::println(v);
+	// 	br::printlnfmt("cap: {}, length: {}", br::capacity(v), br::length(v));
+	// 	br::println(v);
 
-		v = pop(v, 4);
-		v = push(v, 999);
+	// 	v = pop(v, 4);
+	// 	v = push(v, 999);
 
-		br::println(v);
-	}
+	// 	br::println(v);
+	// }
 
-	auto map = br::map_file(cstr("README.md"));
-	br::print(map);
+	// auto map = br::map_file(cstr("src/main.cpp"));
+	// br::print(map);
+
+	// if (not br::utf_validate(map)) {
+	// 	br::halt("invalid source file");
+	// }
+
+	// for (auto it = map; not br::eof(it); it = br::next_char(it)) {
+	// 	// br::printlnfmt("char: '{}', is_letter: {}", br::as_view(it), br::is_visible(br::as_char(it)));
+	// 	if (br::is_visible(br::as_char(it)))
+	// 		br::print(br::as_view(it));
+	// }
+	// br::println();
+
+	// br::unmap_file(map);
 
 	// BR_INTERNAL_ASSERT(1 == 2);
 	// BR_INTERNAL_UNIMPLEMENTED();
 
-	// br::halt("uh {} oh", "fuck");
+	// const auto handle_foo = [] (br::str_view arg) {
+	// 	br::printlnfmt("handle_foo: '{}'", arg);
+	// };
+
+	bool foo = false;
+	br::argparse(argc, argv, cstr("[help msg]"),
+		br::opt_t{br::opt_toggle(foo), cstr("--foo"), cstr("-f")}
+	);
+
+	br::printlnfmt("foo: '{}'", foo);
 
 	return br::EXIT_SUCCESS;
 }
