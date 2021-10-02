@@ -11,11 +11,11 @@ namespace br {
 	constexpr int EXIT_FAILURE = 1;
 	constexpr int EXIT_SUCCESS = 0;
 
-	void exit(i32_t code) {
+	[[noreturn]] void exit(i32_t code) {
 		std::exit(code);
 	}
 
-	void abort() {
+	[[noreturn]] void abort() {
 		std::abort();
 	}
 

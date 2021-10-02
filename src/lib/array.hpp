@@ -36,14 +36,14 @@ namespace br {
 
 	// Make a vector with no elements.
 	template <typename T, size_t N>
-	constexpr auto make_array() {
+	[[nodiscard]] constexpr auto make_array() {
 		return array<T, N>{};
 	}
 
 
 	// Make a vector with a number of elements.
 	template <typename... Ts>
-	constexpr auto make_array(Ts... args) {
+	[[nodiscard]] constexpr auto make_array(Ts... args) {
 		using T = first_t<Ts...>;
 		BR_STATIC_ASSERT((equivalence_v<T, Ts...>));
 

@@ -337,7 +337,7 @@ namespace br {
 
 	// Halt.
 	template <typename... Ts>
-	inline void halt(Ts... args) {
+	[[noreturn]] inline void halt(Ts... args) {
 		br::errlnfmt(args...);
 		exit(1);
 	}

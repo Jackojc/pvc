@@ -13,7 +13,6 @@ namespace br {
 	struct svec {
 		using type = T;
 
-		// T data[N] = { 0 };
 		array<T, N> data;
 		size_t capacity = N;
 		size_t used = 0;
@@ -40,10 +39,10 @@ namespace br {
 
 	// In-place construct an element.
 	template <typename T, size_t N, typename... Ts>
-	constexpr auto emplace(svec<T, N> v, Ts... args) {
+	[[nodiscard]] constexpr auto emplace(svec<T, N> v, Ts... args) {
 		BR_ASSERT(v.used != v.capacity);
 
-		*data(v.data, v.used) = T(args...);
+		*data(v.data, v.used) = T { args... };
 		v.used++;
 
 		return v;
@@ -52,12 +51,12 @@ namespace br {
 
 	// Push back an element.
 	template <typename T, size_t N>
-	constexpr auto push(svec<T, N> v, T x) {
+	[[nodiscard]] constexpr auto push(svec<T, N> v, T x) {
 		return emplace(v, x);
 	}
 
 	template <typename T, size_t N>
-	constexpr auto pop(svec<T, N> v, size_t n = 1) {
+	[[nodiscard]] constexpr auto pop(svec<T, N> v, size_t n = 1) {
 		BR_ASSERT(n > 0);
 		v.used -= n;
 		return v;
@@ -66,14 +65,14 @@ namespace br {
 
 	// Make a vector with no elements.
 	template <typename T, size_t N>
-	constexpr auto make_svec() {
+	[[nodiscard]] constexpr auto make_svec() {
 		return svec<T, N>{};
 	}
 
 
 	// Make a vector with a number of elements.
 	template <typename... Ts>
-	constexpr auto make_svec(Ts... args) {
+	[[nodiscard]] constexpr auto make_svec(Ts... args) {
 		using T = first_t<Ts...>;
 		BR_STATIC_ASSERT((equivalence_v<T, Ts...>));
 
