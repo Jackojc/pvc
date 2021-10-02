@@ -9,10 +9,6 @@ namespace br {
 
 namespace br {
 
-	inline bool is_whitespace(char_t c) {
-		return is_zs(c);
-	}
-
 	inline bool is_letter(char_t c) {
 		return is_lu(c) or is_ll(c) or is_lt(c) or is_lm(c) or is_lo(c);
 	}
@@ -34,9 +30,12 @@ namespace br {
 		return is_sm(c) or is_sc(c) or is_sk(c) or is_so(c);
 	}
 
-	// whitespace
 	inline bool is_seperator(char_t c) {
 		return is_zs(c) or is_zl(c) or is_zp(c);
+	}
+
+	inline bool is_control(char_t c) {
+		return is_cc(c) or is_cf(c);
 	}
 
 	inline bool is_other(char_t c) {
@@ -49,7 +48,10 @@ namespace br {
 
 	inline bool is_visible(char_t c) {
 		return is_alphanumeric(c) or is_symbol(c) or is_punctuation(c);
-		// return not (is_other(c) or is_seperator(c) or is_mark(c));
+	}
+
+	inline bool is_whitespace(char_t c) {
+		return is_zs(c) or is_control(c);
 	}
 
 }

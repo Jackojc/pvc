@@ -8,6 +8,7 @@
 #include <lib/print.hpp>
 #include <lib/file.hpp>
 #include <lib/vec.hpp>
+#include <lib/tuple.hpp>
 #include <lib/log.hpp>
 #include <lib/debug.hpp>
 #include <lib/unicode.hpp>
@@ -119,12 +120,17 @@ int main(int argc, const char* argv[]) {
 		br::printlnfmt("positional: '{}'", sv);
 	};
 
-	br::str_view foo;
-	br::argparse(argc, argv, cstr("[help msg]"), br::positional(positional),
-		br::opt_t{br::opt_arg(foo), cstr("--foo"), cstr("-f")}
+	br::str_view first_name;
+	br::str_view last_name;
+	bool flag = false;
+
+	br::argparse(argc, argv, br::positional(positional),
+		br::opt_arg(first_name, cstr("--name"), cstr("-n"), cstr("first name")),
+		br::opt_arg(last_name, cstr("--last"), cstr("-l"), cstr("last name")),
+		br::opt_toggle(flag, cstr("--flag"), cstr("-f"), cstr("toggle the flag"))
 	);
 
-	br::printlnfmt("foo: '{}'", foo);
+	br::printlnfmt("first: '{}'\nlast: '{}'\nflag: '{}'", first_name, last_name, flag);
 
 	return br::EXIT_SUCCESS;
 }

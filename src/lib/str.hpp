@@ -50,13 +50,21 @@ namespace br {
 	constexpr u8_t utf_char_length(const char* const);
 	constexpr char_t utf_char_decode(const char* const, size_t);
 
-	constexpr str_view iter_next_char(str_view, char_t&, index_t = 1);
-	constexpr str_view iter_next_byte(str_view, byte_t&, index_t = 1);
-	constexpr str_view iter_next_view(str_view, str_view&, index_t = 1);
+	[[nodiscard]] constexpr str_view iter_next_char(str_view, char_t&, index_t = 1);
+	[[nodiscard]] constexpr str_view iter_next_byte(str_view, byte_t&, index_t = 1);
+	[[nodiscard]] constexpr str_view iter_next_view(str_view, str_view&, index_t = 1);
 
-	constexpr str_view iter_prev_char(str_view, char_t&, index_t = 1);
-	constexpr str_view iter_prev_byte(str_view, byte_t&, index_t = 1);
-	constexpr str_view iter_prev_view(str_view, str_view&, index_t = 1);
+	[[nodiscard]] constexpr str_view iter_prev_char(str_view, char_t&, index_t = 1);
+	[[nodiscard]] constexpr str_view iter_prev_byte(str_view, byte_t&, index_t = 1);
+	[[nodiscard]] constexpr str_view iter_prev_view(str_view, str_view&, index_t = 1);
+
+	// [[nodiscard]] constexpr str_view next_char_if(str_view, char_t&, index_t = 1);
+	// [[nodiscard]] constexpr str_view next_byte_if(str_view, byte_t&, index_t = 1);
+	// [[nodiscard]] constexpr str_view next_view_if(str_view, str_view&, index_t = 1);
+
+	// [[nodiscard]] constexpr str_view prev_char_if(str_view, char_t&, index_t = 1);
+	// [[nodiscard]] constexpr str_view prev_byte_if(str_view, byte_t&, index_t = 1);
+	// [[nodiscard]] constexpr str_view prev_view_if(str_view, str_view&, index_t = 1);
 
 	[[nodiscard]] constexpr const char* utf_char_next(const char* const);
 	[[nodiscard]] constexpr const char* utf_char_prev(const char* const);
@@ -129,18 +137,20 @@ namespace br {
 	constexpr u8_t utf_char_length(const char* const ptr) {
 		// Cast to u32_t and shift first byte into most
 		// significant position then negate.
-		u32_t u = ~(((u32_t)ptr[0]) << 24);
+		// u32_t u = ~(((u32_t)ptr[0]) << 24);
 
 		// Map result of countl_zero(u) to return value.
 		// 0 -> 1 byte(s)
 		// 2 -> 2 byte(s)
 		// 3 -> 3 byte(s)
 		// 4 -> 4 byte(s)
-		constexpr u32_t out[] = {
-			1, 1, 2, 3, 4
-		};
+		// constexpr u32_t out[] = {
+		// 	1, 1, 2, 3, 4
+		// };
 
-		return out[countl_zero(u)];
+		// return out[countl_zero(u)];
+
+		return countl_one((((unsigned)((ptr[0] | 0b10000000) & ~0b01000000 ) | ((ptr[0] & 0b10000000) >> 1)) << 24));
 	}
 
 	// Return ptr advanced by one codepoint.
