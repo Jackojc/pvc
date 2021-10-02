@@ -89,6 +89,24 @@ namespace br {
 	}
 
 
+	// Check if all arguments are equal to first.
+	template <typename T, typename... Ts>
+	constexpr bool eq_all(T&& first, Ts&&... rest) {
+		return ((first == rest) and ...);
+	}
+
+	// Check if any arguments are equal to first.
+	template <typename T, typename... Ts>
+	constexpr bool eq_any(T&& first, Ts&&... rest) {
+		return ((first == rest) or ...);
+	}
+
+	// Check if none of the arguments are equal to first.
+	template <typename T, typename... Ts>
+	constexpr bool eq_none(T&& first, Ts&&... rest) {
+		return ((first != rest) and ...);
+	}
+
 
 	// Read/write data at specified index.
 	template <typename T> constexpr auto at(T v, index_t i) {
@@ -128,6 +146,21 @@ namespace br {
 			return count;
 		#endif
 	}
+
+	constexpr u32_t countl_one(u32_t x) {
+		return countl_zero(~x);
+	}
+
+
+	// Wrap two types.
+	template <typename T1, typename T2>
+	struct pair_t {
+		T1 first;
+		T2 second;
+	};
+
+	template <typename T1, typename T2>
+	pair_t(T1, T2) -> pair_t<T1, T2>;
 
 }
 

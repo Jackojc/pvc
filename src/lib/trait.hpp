@@ -2,6 +2,7 @@
 #define BR_TRAIT_H
 
 #include <lib/def.hpp>
+#include <lib/misc.hpp>
 
 namespace br {
 
@@ -389,6 +390,66 @@ namespace br {
 
 	template <typename T>
 	using decay_t = typename decay<T>::type;
+
+
+	// largest/smallest
+	template <typename... Ts> struct largest;
+	template <typename T>     struct largest<T> { using type = T; };
+
+	template <typename T1, typename T2, typename... Ts>
+	struct largest<T1, T2, Ts...> {
+		using type =
+			typename largest<
+				typename conditional<
+					sizeof(T2) <= sizeof(T1), T1, T2
+				>::type, Ts...
+			>::type;
+	};
+
+	template <typename... Ts>
+	using largest_t = typename largest<Ts...>::type;
+
+	template <typename... Ts> struct smallest;
+	template <typename T>     struct smallest<T> { using type = T; };
+
+	template <typename T1, typename T2, typename... Ts>
+	struct smallest<T1, T2, Ts...> {
+		using type =
+			typename smallest<
+				typename conditional<
+					sizeof(T2) >= sizeof(T1), T1, T2
+				>::type, Ts...
+			>::type;
+	};
+
+	template <typename... Ts>
+	using smallest_t = typename smallest<Ts...>::type;
+
+
+	// aligned_storage
+	template <size_t L, size_t A>
+	struct aligned_storage {
+		struct type {
+			alignas(A) unsigned char data[L];
+		};
+	};
+
+	template <size_t L, size_t A>
+	using aligned_storage_t = typename aligned_storage<L, A>::type;
+
+
+	// aligned_union
+	template <size_t L, typename... Ts>
+	struct aligned_union {
+		static constexpr size_t align_to = max({ alignof(Ts)... });
+
+		struct type {
+			alignas(align_to) char _s[max({ L, sizeof(Ts)... })];
+		};
+	};
+
+	template <size_t L, typename... Ts>
+	using aligned_union_t = typename aligned_union<L, Ts...>::type;
 }
 
 #endif
