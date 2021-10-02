@@ -210,6 +210,8 @@ namespace br {
 	// Constants
 	constexpr size_t VEC_MINIMUM_LENGTH = 10;
 	constexpr size_t PATH_MAXIMUM_LENGTH = 4096;
+	constexpr size_t HELP_STR_LENGTH = 4096;
+	constexpr size_t USAGE_STR_LENGTH = 2048;
 
 }
 

@@ -6,6 +6,7 @@
 #include <lib/exit.hpp>
 #include <lib/trait.hpp>
 #include <lib/assert.hpp>
+#include <lib/svec.hpp>
 #include <lib/print.hpp>
 
 namespace br {
@@ -19,14 +20,21 @@ namespace br {
 			ARG_POSITIONAL      = 0b00000100,
 		};
 
+		using arg_meta_t = u8_t;
+		enum: arg_meta_t {
+			META_NONE       = 0b00000000,
+			META_TAKES_ARG  = 0b00000001,
+			META_POSITIONAL = 0b00000010,
+		};
+
 		enum {
 			MESSAGE_TAKES_ARG,
 			MESSAGE_UNKNOWN_ARG,
 		};
 
 		constexpr str_view messages[] = {
-			cstr("error: option '{}' takes an argument"),
-			cstr("error: unknown argument: '{}'"),
+			cstr("option '{}' takes an argument"),
+			cstr("unknown argument: '{}'"),
 		};
 	}
 
@@ -51,18 +59,92 @@ namespace br {
 	template <typename T>
 	struct opt_t {
 		T fn;
+		detail::arg_meta_t meta;
 		str_view long_opt;
 		str_view short_opt;
+		str_view help;
 	};
 
 	template <typename T, typename... Ts>
 	opt_t(T, Ts...) -> opt_t<T>;
 
 
+	template <typename T>
+	struct positional_t {
+		T fn;
+		detail::arg_meta_t meta;
+	};
+
+	template <typename T, typename... Ts>
+	positional_t(T, Ts...) -> positional_t<T>;
+
+
+	using usage_buf_t = svec<str_view, USAGE_STR_LENGTH>;
+	using help_buf_t  = svec<str_view, HELP_STR_LENGTH>;
+
+
+	namespace detail {
+		template <typename T>
+		inline void print_buf(const T& buf) {
+			for (index_t i = 0; i != length(buf); ++i)
+				print(at(buf, i));
+		}
+
+		template <typename T, typename... Ts>
+		constexpr T cat(T buf, Ts... args) {
+			return ([&] (auto x) {
+				buf = emplace(buf, x);
+				return buf;
+			} (args), ...);
+		}
+	}
+
+
+	template <typename... Ts>
+	constexpr usage_buf_t generate_usage(str_view exe, detail::arg_meta_t meta, Ts... parsers) {
+		usage_buf_t buf;
+
+		buf = detail::cat(buf, cstr("usage: "), exe);
+
+		([&] (auto parser) {
+			auto [fn, meta, lng, shrt, help] = parser;
+			buf = detail::cat(buf, cstr(" [ "), lng);
+
+			if (meta & detail::META_TAKES_ARG)
+				buf = emplace(buf, cstr(" <x>"));
+
+			buf = emplace(buf, cstr(" ]"));
+		} (parsers), ...);
+
+		if (meta & detail::META_POSITIONAL)
+			buf = emplace(buf, cstr(" [ ... ]"));
+
+		buf = emplace(buf, cstr("\n"));
+		return buf;
+	}
+
+	template <typename... Ts>
+	constexpr help_buf_t generate_help(str_view exe, detail::arg_meta_t meta, Ts... parsers) {
+		help_buf_t buf;
+
+		([&] (auto parser) {
+			auto [fn, meta, lng, shrt, help] = parser;
+			buf = detail::cat(buf, cstr("  "), shrt, cstr(", "), lng);
+
+			if (meta & detail::META_TAKES_ARG)
+				buf = emplace(buf, cstr(" <x>"));
+
+			buf = detail::cat(buf, cstr("\t"), help, cstr("\n"));
+		} (parsers), ...);
+
+		return buf;
+	}
+
+
 	// Attempt to parse an option by comparing string in opt_t to arg.
 	template <typename T>
 	inline bool optparse(int& argc, const char**& argv, str_view arg, detail::arg_err_t& flags, opt_t<T> parser) {
-		auto [fn, lng, shrt] = parser;
+		auto [fn, meta, lng, shrt, help] = parser;
 
 		// If argument doesn't match long or short option,
 		// we return false (to break the `or` chain) and
@@ -82,59 +164,26 @@ namespace br {
 	}
 
 
-	// Convenience functions for common types.
-	decltype(auto) opt_toggle(bool& ref) {
-		return [&ref] (int&, const char**&, str_view arg, detail::arg_err_t&) { ref = not ref; return true; };
-	}
-
-	decltype(auto) opt_set(bool& ref) {
-		return [&ref] (int&, const char**&, str_view arg, detail::arg_err_t&) { ref = true; return true; };
-	}
-
-	decltype(auto) opt_unset(bool& ref) {
-		return [&ref] (int&, const char**&, str_view arg, detail::arg_err_t&) { ref = false; return true; };
-	}
-
-	decltype(auto) opt_sv(str_view& ref) {
-		return [&ref] (int&, const char**&, str_view arg, detail::arg_err_t&) { ref = arg; return true; };
-	}
-
-	// Consumes an extra argument for an option that requires an argument.
-	decltype(auto) opt_arg(str_view& ref) {
-		return [&ref] (int& argc, const char**& argv, str_view arg, detail::arg_err_t& flags) {
-			arg = argshift(argc, argv);
-
-			if (is_null(arg)) {
-				flags |= detail::ARG_ERR_TAKES_ARG;
-				return false;
-			}
-
-			ref = arg;
-			return true;
-		};
-	}
-
-	// Wrap user handler for positional arg where the user only cares about the string.
-	template <typename F>
-	decltype(auto) positional(F func) {
-		return [&func] (int&, const char**&, br::str_view sv, br::detail::arg_err_t&) {
-			func(sv);
-		};
-	}
-
-	// Do nothing with positional arg.
-	void ignore_positional(int&, const char**&, br::str_view, br::detail::arg_err_t&) {}
-
 
 	template <typename T, typename... Ts>
-	inline void argparse(int& argc, const char**& argv, str_view help, T positional_opt, Ts... parsers) {
+	inline void argparse(int& argc, const char**& argv, positional_t<T> positional, Ts... parsers) {
 		BR_STATIC_ASSERT((conjunction_v<is_specialisation<Ts, opt_t>...>));
-
 		str_view exe = argshift(argc, argv); // argv[0]
-		println(exe);
 
-		bool want_help = false;
-		opt_t help_opt = opt_t{opt_set(want_help), cstr("--help"), cstr("-h")};
+		usage_buf_t usage = generate_usage(exe, positional.meta, parsers...);
+		help_buf_t help = generate_help(exe, positional.meta, parsers...);
+
+		const auto help_handler = [&help] {
+			detail::print_buf(help);
+			exit(EXIT_SUCCESS);
+		};
+
+		opt_t help_opt = opt_action(help_handler, cstr("--help"), cstr("-h"), cstr("view this help message"));
+
+		if (argc == 0) {
+			detail::print_buf(usage);
+			exit(EXIT_FAILURE);
+		}
 
 		// Loop over all arguments.
 		str_view arg = argshift(argc, argv);
@@ -159,8 +208,8 @@ namespace br {
 					errlnfmt(detail::messages[detail::MESSAGE_UNKNOWN_ARG], arg);
 				}
 
-				// Print help and exit.
-				println(help);
+				// Print usage and exit.
+				detail::print_buf(usage);
 				exit(EXIT_FAILURE);
 			}
 
@@ -168,19 +217,107 @@ namespace br {
 			// We check if the argument is positional and if so,
 			// call the user specified handler for positional args.
 			if (flags & detail::ARG_POSITIONAL) {
-				positional_opt(argc, argv, arg, flags);
-			}
-
-			// Print help if the user asked for it.
-			else if (want_help) {
-				println(help);
-				exit(EXIT_SUCCESS);
+				positional.fn(argc, argv, arg, flags);
 			}
 
 			// Shift to the next argument.
 			arg = argshift(argc, argv);
 		}
 	}
+
+
+
+	// Wrap user handler for positional arg where the user only cares about the string.
+	template <typename F>
+	constexpr decltype(auto) positional(F func) {
+		return positional_t {
+			[func] (int&, const char**&, br::str_view sv, br::detail::arg_err_t&) {
+				func(sv);
+				return true;
+			},
+			detail::META_POSITIONAL
+		};
+	}
+
+
+	// Do nothing with positional args.
+	constexpr decltype(auto) ignore_positional() {
+		return positional_t { [] (auto...) {}, detail::META_NONE };
+	}
+
+
+	// Consumes an extra argument for an option that requires an argument.
+	constexpr decltype(auto) opt_arg(str_view& ref, str_view lng, str_view shrt, str_view help) {
+		return opt_t {
+			[&ref] (int& argc, const char**& argv, str_view arg, detail::arg_err_t& flags) {
+				arg = argshift(argc, argv);
+
+				if (is_null(arg)) {
+					flags |= detail::ARG_ERR_TAKES_ARG;
+					return false;
+				}
+
+				ref = arg;
+				return true;
+			},
+			detail::META_TAKES_ARG, lng, shrt, help
+		};
+	}
+
+
+	constexpr decltype(auto) opt_sv(str_view& ref, str_view lng, str_view shrt, str_view help) {
+		return opt_t {
+			[&ref] (int&, const char**&, str_view arg, detail::arg_err_t&) {
+				ref = arg;
+				return true;
+			},
+			detail::META_NONE, lng, shrt, help
+		};
+	}
+
+	template <typename F>
+	constexpr decltype(auto) opt_action(F func, str_view lng, str_view shrt, str_view help) {
+		return opt_t {
+			[func] (int&, const char**&, str_view arg, detail::arg_err_t&) {
+				func();
+				return true;
+			},
+			detail::META_NONE, lng, shrt, help
+		};
+	}
+
+
+	constexpr decltype(auto) opt_toggle(bool& ref, str_view lng, str_view shrt, str_view help) {
+		return opt_t {
+			[&ref] (int&, const char**&, str_view arg, detail::arg_err_t&) {
+				ref = not ref;
+				return true;
+			},
+			detail::META_NONE, lng, shrt, help
+		};
+	}
+
+	constexpr decltype(auto) opt_set(bool& ref, str_view lng, str_view shrt, str_view help) {
+		return opt_t{
+			[&ref] (int&, const char**&, str_view arg, detail::arg_err_t&) {
+				ref = true;
+				return true;
+			},
+			detail::META_NONE, lng, shrt, help
+		};
+	}
+
+	constexpr decltype(auto) opt_unset(bool& ref, str_view lng, str_view shrt, str_view help) {
+		return opt_t{
+			[&ref] (int&, const char**&, str_view arg, detail::arg_err_t&) {
+				ref = false;
+				return true;
+			},
+			detail::META_NONE, lng, shrt, help
+		};
+	}
+
+
 
 }
 
