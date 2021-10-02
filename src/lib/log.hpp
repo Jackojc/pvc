@@ -4,6 +4,7 @@
 #include <lib/def.hpp>
 #include <lib/print.hpp>
 #include <lib/assert.hpp>
+#include <lib/debug.hpp>
 
 namespace br {
 
@@ -172,7 +173,8 @@ namespace br {
 			BR_DEBUG_RUN(( br::err("`", BR_VAR(fn_name), "`") )); \
 			\
 			if constexpr(sizeof...(BR_VAR(args)) > 0) \
-				BR_DEBUG_RUN( (br::err(" => ", BR_VAR(args)...)) ); \
+				BR_DEBUG_RUN( (br::err(" => ")) ); \
+				BR_DEBUG_RUN( (br::errfmt(BR_VAR(args)...)) ); \
 			\
 			BR_DEBUG_RUN(( br::errln( BR_ANSI_RESET ) )); \
 		} ( __VA_ARGS__ ); } while (0)
