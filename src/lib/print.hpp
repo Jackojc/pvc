@@ -214,11 +214,11 @@ namespace br {
 			while (not eof(fmt)) {
 				fmt = iter_next_view(fmt, sv);
 
-				if (eq(sv, cstr("{"))) {
+				if (eq(sv, "{"_sv)) {
 					fmt = iter_next_view(fmt, sv);
 
 					// Ensure if `}` immediately follows `{`.
-					BR_ASSERT(eq(sv, cstr("}")));
+					BR_ASSERT(eq(sv, "}"_sv));
 
 					// We have found `{}`...
 					detail::print(ss, first);

@@ -33,8 +33,8 @@ namespace br {
 		};
 
 		constexpr str_view messages[] = {
-			cstr("option '{}' takes an argument"),
-			cstr("unknown argument: '{}'"),
+			"option '{}' takes an argument"_sv,
+			"unknown argument: '{}'"_sv,
 		};
 	}
 
@@ -104,22 +104,22 @@ namespace br {
 	constexpr usage_buf_t generate_usage(str_view exe, detail::arg_meta_t meta, Ts... parsers) {
 		usage_buf_t buf;
 
-		buf = detail::cat(buf, cstr("usage: "), exe);
+		buf = detail::cat(buf, "usage: "_sv, exe);
 
 		([&] (auto parser) {
 			auto [fn, meta, lng, shrt, help] = parser;
-			buf = detail::cat(buf, cstr(" [ "), lng);
+			buf = detail::cat(buf, " [ "_sv, lng);
 
 			if (meta & detail::META_TAKES_ARG)
-				buf = emplace(buf, cstr(" <x>"));
+				buf = emplace(buf, " <x>"_sv);
 
-			buf = emplace(buf, cstr(" ]"));
+			buf = emplace(buf, " ]"_sv);
 		} (parsers), ...);
 
 		if (meta & detail::META_POSITIONAL)
-			buf = emplace(buf, cstr(" [ ... ]"));
+			buf = emplace(buf, " [ ... ]"_sv);
 
-		buf = emplace(buf, cstr("\n"));
+		buf = emplace(buf, "\n"_sv);
 		return buf;
 	}
 
@@ -129,12 +129,12 @@ namespace br {
 
 		([&] (auto parser) {
 			auto [fn, meta, lng, shrt, help] = parser;
-			buf = detail::cat(buf, cstr("  "), shrt, cstr(", "), lng);
+			buf = detail::cat(buf, "  "_sv, shrt, ", "_sv, lng);
 
 			if (meta & detail::META_TAKES_ARG)
-				buf = emplace(buf, cstr(" <x>"));
+				buf = emplace(buf, " <x>"_sv);
 
-			buf = detail::cat(buf, cstr("\t"), help, cstr("\n"));
+			buf = detail::cat(buf, "\t"_sv, help, "\n"_sv);
 		} (parsers), ...);
 
 		return buf;
@@ -178,7 +178,7 @@ namespace br {
 			exit(EXIT_SUCCESS);
 		};
 
-		opt_t help_opt = opt_action(help_handler, cstr("--help"), cstr("-h"), cstr("view this help message"));
+		opt_t help_opt = opt_action(help_handler, "--help"_sv, "-h"_sv, "view this help message"_sv);
 
 		if (argc == 0) {
 			detail::print_buf(usage);

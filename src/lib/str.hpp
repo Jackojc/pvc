@@ -19,13 +19,6 @@ namespace br {
 		const char* end   = nullptr;
 	};
 
-	// Convert a string literal to a str_view.
-	// We can determine the size if it's a literal
-	// because it hasn't decayed and so the length
-	// is available to us.
-	#define cstr(s) \
-		(br::str_view { s, ((const char*)s) + (sizeof(s) - 1) })
-
 
 	// Prototypes.
 	constexpr str_view make_sv(const char* const, const char* const);
@@ -473,6 +466,18 @@ namespace br {
 		return as_view(sv);
 	}
 
+}
+
+
+// Convert a string literal to a str_view.
+// We can determine the size if it's a literal
+// because it hasn't decayed and so the length
+// is available to us.
+#define cstr(s) \
+	(br::str_view { s, ((const char*)s) + (sizeof(s) - 1) })
+
+constexpr br::str_view operator""_sv(const char* const str, size_t n) {
+	return br::make_sv(str, n);
 }
 
 #endif

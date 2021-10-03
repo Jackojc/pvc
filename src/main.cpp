@@ -15,7 +15,7 @@
 #include <lib/arg.hpp>
 
 int main(int argc, const char* argv[]) {
-	// auto str = cstr("hello there");
+	// auto str = "hello there"_sv;
 	// br::println(str);
 	// br::println("foo bar");
 	// br::println('a');
@@ -93,7 +93,7 @@ int main(int argc, const char* argv[]) {
 	// 	br::println(v);
 	// }
 
-	// auto map = br::map_file(cstr("src/main.cpp"));
+	// auto map = br::map_file("src/main.cpp"_sv));
 	// br::print(map);
 
 	// if (not br::utf_validate(map)) {
@@ -125,9 +125,9 @@ int main(int argc, const char* argv[]) {
 	bool flag = false;
 
 	br::argparse(argc, argv, br::positional(positional),
-		br::opt_arg(first_name, cstr("--name"), cstr("-n"), cstr("first name")),
-		br::opt_arg(last_name, cstr("--last"), cstr("-l"), cstr("last name")),
-		br::opt_toggle(flag, cstr("--flag"), cstr("-f"), cstr("toggle the flag"))
+		br::opt_arg(first_name, "--name"_sv, "-n"_sv, "first name"_sv),
+		br::opt_arg(last_name, "--last"_sv, "-l"_sv, "last name"_sv),
+		br::opt_toggle(flag, "--flag"_sv, "-f"_sv, "toggle the flag"_sv)
 	);
 
 	br::printlnfmt("first: '{}'\nlast: '{}'\nflag: '{}'", first_name, last_name, flag);
