@@ -87,7 +87,7 @@ namespace br {
 		template <typename T>
 		inline void print_buf(const T& buf) {
 			for (index_t i = 0; i != length(buf); ++i)
-				print(at(buf, i));
+				err(at(buf, i));
 		}
 
 		template <typename T, typename... Ts>

@@ -118,6 +118,10 @@ namespace br {
 		return v;
 	}
 
+	template <typename T> [[nodiscard]] constexpr auto empty(T v) {
+		return length(v) == 0;
+	}
+
 
 
 	// Access the front and back of a container with random access.

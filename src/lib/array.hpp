@@ -11,7 +11,7 @@ namespace br {
 	template <typename T, size_t N>
 	struct array {
 		using type = T;
-		T data[N] = { 0 };
+		T data[N];
 	};
 
 
