@@ -51,7 +51,7 @@ namespace br {
 		is_pointer_helper<typename remove_cv<T>::type> {};
 
 	template <typename T>
-	constexpr bool is_pointer_v = is_pointer<T>::value;
+	inline constexpr bool is_pointer_v = is_pointer<T>::value;
 
 
 	// https://en.cppreference.com/w/cpp/types/is_same
@@ -65,7 +65,7 @@ namespace br {
 		true_type {};
 
 	template <typename T, typename U>
-	constexpr bool is_same_v = is_same<T, U>::value;
+	inline constexpr bool is_same_v = is_same<T, U>::value;
 
 
 	// https://en.cppreference.com/w/cpp/types/is_null_pointer
@@ -75,7 +75,7 @@ namespace br {
 		is_same<nullptr_t, remove_cv_t<T>> {};
 
 	template <typename T>
-	constexpr bool is_null_pointer_v = is_null_pointer<T>::value;
+	inline constexpr bool is_null_pointer_v = is_null_pointer<T>::value;
 
 
 	// https://en.cppreference.com/w/cpp/types/is_integral
@@ -99,7 +99,7 @@ namespace br {
 	template <typename T> struct is_integral: is_integral_base<remove_cv_t<T>> {};
 
 	template <typename T>
-	constexpr bool is_integral_v = is_integral<T>::value;
+	inline constexpr bool is_integral_v = is_integral<T>::value;
 
 
 	// is_signed/is_unsigned
@@ -119,8 +119,8 @@ namespace br {
 	template <typename T> struct is_signed: is_signed_base<remove_cv_t<T>> {};
 	template <typename T> struct is_unsigned: is_unsigned_base<remove_cv_t<T>> {};
 
-	template <typename T> constexpr bool is_signed_v = is_signed<T>::value;
-	template <typename T> constexpr bool is_unsigned_v = is_unsigned<T>::value;
+	template <typename T> inline constexpr bool is_signed_v = is_signed<T>::value;
+	template <typename T> inline constexpr bool is_unsigned_v = is_unsigned<T>::value;
 
 
 	// is_array
@@ -135,7 +135,7 @@ namespace br {
 
 
 	template <typename T>
-	constexpr bool is_array_v = is_array<T>::value;
+	inline constexpr bool is_array_v = is_array<T>::value;
 
 
 	// type_identity
@@ -179,7 +179,7 @@ namespace br {
 	struct conjunction<B1, Bn...>: conditional_t<bool(B1::value), conjunction<Bn...>, B1> {};
 
 	template <typename... B>
-	constexpr bool conjunction_v = conjunction<B...>::value;
+	inline constexpr bool conjunction_v = conjunction<B...>::value;
 
 
 	// disjunction (logical or)
@@ -191,7 +191,7 @@ namespace br {
 	struct disjunction<B1, Bn...>: conditional_t<bool(B1::value), B1, disjunction<Bn...>>  { };
 
 	template <typename... B>
-	constexpr bool disjunction_v = disjunction<B...>::value;
+	inline constexpr bool disjunction_v = disjunction<B...>::value;
 
 
 	// is_void
@@ -199,7 +199,7 @@ namespace br {
 	struct is_void: is_same<void, typename remove_cv<T>::type> {};
 
 	template <typename T>
-	constexpr bool is_void_v = is_void<T>::value;
+	inline constexpr bool is_void_v = is_void<T>::value;
 
 
 	// is_convertible
@@ -229,7 +229,7 @@ namespace br {
 	> {};
 
 	template <typename From, typename To>
-	constexpr bool is_convertible_v = is_convertible<From, To>::value;
+	inline constexpr bool is_convertible_v = is_convertible<From, To>::value;
 
 
 	// equivalence (Ts are convertible to T)
@@ -237,7 +237,7 @@ namespace br {
 	struct equivalence: conjunction<is_convertible<Ts, T>...> {};
 
 	template <typename T, typename... Ts>
-	constexpr bool equivalence_v = equivalence<T, Ts...>::value;
+	inline constexpr bool equivalence_v = equivalence<T, Ts...>::value;
 
 
 	// parity (Ts are the same as T)
@@ -245,7 +245,7 @@ namespace br {
 	struct parity: conjunction<is_same<T, Ts>...> {};
 
 	template <typename T, typename... Ts>
-	constexpr bool parity_v = parity<T, Ts...>::value;
+	inline constexpr bool parity_v = parity<T, Ts...>::value;
 
 
 	// first/last (first and last types in variadic pack)
@@ -291,7 +291,7 @@ namespace br {
 	using is_detected = typename detector<nonesuch, void, Op, Args...>::value_t;
 
 	template <template<typename...> typename Op, typename... Args>
-	constexpr bool is_detected_v = is_detected<Op, Args...>::value;
+	inline constexpr bool is_detected_v = is_detected<Op, Args...>::value;
 
 	template <template<typename...> typename Op, typename... Args>
 	using detected_t = typename detector<nonesuch, void, Op, Args...>::type;
@@ -308,7 +308,7 @@ namespace br {
 	struct is_specialisation<Ref<Args...>, Ref>: true_type {};
 
 	template <typename Test, template<typename...> class Ref>
-	constexpr bool is_specialisation_v = is_specialisation<Test, Ref>::value;
+	inline constexpr bool is_specialisation_v = is_specialisation<Test, Ref>::value;
 
 
 	// remove_extent
@@ -325,7 +325,7 @@ namespace br {
 	template <typename T> struct is_const<const T>: true_type {};
 
 	template <typename T>
-	constexpr bool is_const_v = is_const<T>::value;
+	inline constexpr bool is_const_v = is_const<T>::value;
 
 
 	// is_reference
@@ -334,7 +334,7 @@ namespace br {
 	template <typename T> struct is_reference<T&&>: true_type {};
 
 	template <typename T>
-	constexpr bool is_reference_v = is_reference<T>::value;
+	inline constexpr bool is_reference_v = is_reference<T>::value;
 
 
 	// remove_reference
@@ -367,7 +367,7 @@ namespace br {
 	> {};
 
 	template <typename T>
-	constexpr bool is_function_v = is_function<T>::value;
+	inline constexpr bool is_function_v = is_function<T>::value;
 
 
 	// decay
@@ -450,6 +450,41 @@ namespace br {
 
 	template <size_t L, typename... Ts>
 	using aligned_union_t = typename aligned_union<L, Ts...>::type;
+
+
+	// move
+	template <typename T>
+	constexpr remove_reference_t<T>&& move(T&& arg) {
+		return static_cast<remove_reference_t<T>&&>(arg);
+	}
+
+
+	// forward
+	template <typename T>
+	constexpr T&& forward(remove_reference_t<T>& t) {
+		return static_cast<T&&>(t);
+	}
+
+	template <typename T>
+	constexpr T&& forward(remove_reference_t<T>&& t) {
+		return static_cast<T&&>(t);
+	}
+
+
+	// is_noargs_invocable
+	template <typename T, typename = void>
+	struct is_noargs_invocable {
+		static constexpr bool value = false;
+	};
+
+	template <typename T>
+	struct is_noargs_invocable<T, void_t<decltype(declval<T>()())>> {
+		static constexpr bool value = true;
+	};
+
+	template <typename T>
+	inline constexpr bool is_noargs_invocable_v = is_noargs_invocable<T>::value;
+
 }
 
 #endif
