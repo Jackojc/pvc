@@ -26,7 +26,7 @@ namespace br {
 		namespace detail {
 			template <typename T>
 			inline decltype(auto) print_debug_impl(const char* file, const char* line, const char* expr_s, T&& expr) {
-				br::printlnfmt("[{}:{}] {} = {}", file, line, expr_s, expr);
+				br::errlnfmt("[{}:{}] {} = {}", file, line, expr_s, expr);
 				return expr;
 			}
 		}
