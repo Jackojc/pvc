@@ -17,21 +17,21 @@ namespace br {
 
 	#define BR_UNIMPLEMENTED() \
 		do { \
-			std::puts(BR_TRACE "unimplemented!"); \
+			std::fputs(BR_TRACE "unimplemented!", stderr); \
 			br::exit(br::EXIT_FAILURE); \
 		} while (0)
 
 	#ifndef BR_DISABLE_ASSERT
 		#define BR_UNREACHABLE() \
 			do { \
-				std::puts(BR_TRACE "unreachable!"); \
+				std::fputs(BR_TRACE "unreachable!", stderr); \
 				br::exit(br::EXIT_FAILURE); \
 			} while (0)
 
 		#define BR_ASSERT(cond) \
 			do { \
 				if (not (cond)) { \
-					std::puts(BR_TRACE "assertion failed: '" BR_STR(cond) "'!"); \
+					std::fputs(BR_TRACE "assertion failed: '" BR_STR(cond) "'!", stderr); \
 					br::exit(br::EXIT_FAILURE); \
 				} \
 			} while (0)

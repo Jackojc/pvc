@@ -69,7 +69,7 @@ namespace br {
 		if (v.used == v.capacity)
 			v = detail::grow(v);
 
-		v.data[v.used] = T(args...);
+		v.data[v.used] = T { args... };
 		v.used++;
 
 		return v;

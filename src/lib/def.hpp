@@ -26,6 +26,7 @@ namespace br {
 	using index_t  = br::u64_t;
 	using size_t   = br::u64_t;
 	using length_t = br::u64_t;
+	using offset_t = br::i64_t;
 	using ptr_t    = uintptr_t;
 	using fd_t     = br::i32_t;
 

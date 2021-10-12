@@ -441,10 +441,10 @@ namespace br {
 	// aligned_union
 	template <size_t L, typename... Ts>
 	struct aligned_union {
-		static constexpr size_t align_to = max({ alignof(Ts)... });
+		static constexpr size_t align_to = alignof(largest_t<Ts...>);
 
 		struct type {
-			alignas(align_to) char _s[max({ L, sizeof(Ts)... })];
+			alignas(align_to) char _s[max(L, sizeof(largest_t<Ts...>))];
 		};
 	};
 
