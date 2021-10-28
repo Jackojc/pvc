@@ -173,7 +173,7 @@ namespace br {
 			}
 
 			else {
-				BR_UNIMPLEMENTED();
+				static_assert(false);
 			}
 		}
 

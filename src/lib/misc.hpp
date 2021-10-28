@@ -125,6 +125,14 @@ namespace br {
 
 
 	// Access the front and back of a container with random access.
+	template <typename T, size_t N> constexpr auto front(T(&v)[N]) {
+		return v[0];
+	}
+
+	template <typename T, size_t N> constexpr auto back(T(&v)[N]) {
+		return v[N - 1];
+	}
+
 	template <typename T> constexpr auto front(T v) {
 		return at(v, 0);
 	}

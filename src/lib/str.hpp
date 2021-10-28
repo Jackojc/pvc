@@ -72,6 +72,8 @@ namespace br {
 	[[nodiscard]] constexpr str_view grow_byte(str_view, index_t = 1);
 	[[nodiscard]] constexpr str_view shrink_byte(str_view, index_t = 1);
 
+	template <typename T> constexpr T to_int(str_view);
+
 
 	// Return size by getting the absolute difference between
 	// begin and end pointers.
@@ -219,9 +221,9 @@ namespace br {
 		};
 
 		switch (sz) {
-			[[unlikely]] case 2: return loop(ptr, 2);
-			[[unlikely]] case 3: return loop(ptr, 3);
-			[[unlikely]] case 4: return loop(ptr, 4);
+			case 2: return loop(ptr, 2);
+			case 3: return loop(ptr, 3);
+			case 4: return loop(ptr, 4);
 		}
 
 		return loop(ptr, 1);
@@ -464,6 +466,18 @@ namespace br {
 	constexpr str_view view_at(str_view sv, index_t i) {
 		sv = next_char(sv, i);
 		return as_view(sv);
+	}
+
+
+	// Conversion functions.
+	template <typename T = br::size_t> constexpr T to_int(str_view sv) {
+		T num {};
+
+		for (auto ptr = sv.begin; ptr != sv.end; ++ptr) {
+			num = (num * 10) + (*ptr - '0');
+		}
+
+		return num;
 	}
 
 }
